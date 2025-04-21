@@ -1,0 +1,34 @@
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+parameters:
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+    Tax16\FeatureFlagBundle\:
+        resource: '../../../../*'
+        exclude: '../../../../{DependencyInjection,Entity,Migrations,Tests,Kernel.php}'
+
+    Tax16\FeatureFlagBundle\Infrastructure\FeatureFlag\Persistence\DoctrineFeatureFlagRepository:
+        autowire: false
+
+    Tax16\FeatureFlagBundle\Infrastructure\FeatureFlag\Loader\DoctrineFeatureFlagLoader:
+        autowire: false
+
+
+    Symfony\Component\DependencyInjection\ContainerInterface:
+        alias: 'service_container'
+
+    Tax16\FeatureFlagBundle\Core\Application\FeatureFlag\Factory\FeatureFlagLoaderFactory:
+        arguments:
+            $loaders: !tagged_iterator feature_flag_loader
+        autowire: true
+        autoconfigure: true
+    # add more service definitions when explicit configuration is needed
+    # please note that last definitions always *replace* previous ones

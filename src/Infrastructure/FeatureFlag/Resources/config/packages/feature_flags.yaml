@@ -1,0 +1,5 @@
+feature_flags:
+  storage:
+    type: json  # Can be 'doctrine', 'yaml' ou 'json'
+    path: '%kernel.project_dir%/config/feature_flags.json'
+  cache: true # We have already a static cache for multiple call, but this will add psr cache

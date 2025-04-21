@@ -1,0 +1,13 @@
+services:
+  php83:
+    build:
+      context: .docker/php83
+    container_name: php83
+    volumes:
+      - ./:/var/www
+    working_dir: /var/www
+    networks:
+      - test-network
+
+networks:
+  test-network:
