@@ -3,8 +3,8 @@
 namespace App\Tests\Unit\Infrastructure\FeatureFlag\Loader\Decorator;
 
 use PHPUnit\Framework\TestCase;
+use Tax16\FeatureFlagBundle\Core\Application\FeatureFlag\Factory\FeatureFlagLoaderFactoryInterface;
 use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Entity\FeatureFlag;
-use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Loader\FeatureFlagLoaderInterface;
 use Tax16\FeatureFlagBundle\Core\Domain\Port\ApplicationLoggerInterface;
 use Tax16\FeatureFlagBundle\Core\Domain\Port\CacheInterface;
 use Tax16\FeatureFlagBundle\Infrastructure\FeatureFlag\Loader\Decorator\FeatureFlagLoaderCacheDecorator;
@@ -18,7 +18,7 @@ class FeatureFlagLoaderCacheDecoratorTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->loaderMock = $this->createMock(FeatureFlagLoaderInterface::class);
+        $this->loaderMock = $this->createMock(FeatureFlagLoaderFactoryInterface::class);
         $this->loggerMock = $this->createMock(ApplicationLoggerInterface::class);
         $this->cacheMock = $this->createMock(CacheInterface::class);
 
@@ -32,8 +32,8 @@ class FeatureFlagLoaderCacheDecoratorTest extends TestCase
     public function testLoadFeatureFlagsReturnsCachedData()
     {
         $cachedData = json_encode([
-            ['name' => 'feature_1', 'enabled' => true],
-            ['name' => 'feature_2', 'enabled' => false],
+            ['name' => 'feature_1', 'enabled' => true, 'startDate' => null, 'endDate' => null],
+            ['name' => 'feature_2', 'enabled' => false, 'startDate' => null, 'endDate' => null],
         ], JSON_THROW_ON_ERROR);
 
         $this->cacheMock->method('get')->with('feature_flags')->willReturn($cachedData);
@@ -43,8 +43,8 @@ class FeatureFlagLoaderCacheDecoratorTest extends TestCase
         $featureFlags = $this->decorator->loadFeatureFlags();
 
         $this->assertCount(2, $featureFlags);
-        $this->assertSame('feature_1', $featureFlags[0]['name']);
-        $this->assertTrue($featureFlags[0]['enabled']);
+        $this->assertSame('feature_1', $featureFlags[0]->getName());
+        $this->assertTrue($featureFlags[0]->isEnabled());
     }
 
     public function testLoadFeatureFlagsLoadsFromSourceAndCachesIt()
@@ -54,7 +54,6 @@ class FeatureFlagLoaderCacheDecoratorTest extends TestCase
             $this->createFeatureFlag('feature_2', false),
         ];
 
-        // Simulation d'un cache vide
         $this->cacheMock->method('get')->with('feature_flags')->willReturn(null);
 
         $this->loaderMock->method('loadFeatureFlags')->willReturn($featureFlags);
@@ -62,7 +61,7 @@ class FeatureFlagLoaderCacheDecoratorTest extends TestCase
         $this->loggerMock->expects($this->exactly(2))->method('info');
 
         $this->cacheMock->expects($this->once())->method('set')
-            ->with('feature_flags', json_encode($featureFlags, JSON_THROW_ON_ERROR));
+            ->with('feature_flags',json_encode(array_map(static fn ($flag) => $flag->toArray(), $featureFlags), JSON_THROW_ON_ERROR));
 
         $result = $this->decorator->loadFeatureFlags();
 
