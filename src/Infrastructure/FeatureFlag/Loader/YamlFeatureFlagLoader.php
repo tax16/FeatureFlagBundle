@@ -13,11 +13,11 @@ use Tax16\FeatureFlagBundle\Infrastructure\FeatureFlag\Loader\Trait\FeatureFlagL
 class YamlFeatureFlagLoader implements FeatureFlagLoaderFactoryInterface
 {
     use FeatureFlagLoaderTrait;
-    private string $yamlPath;
+    private ?string $yamlPath = null;
 
     public function __construct(
         #[Autowire(param: 'feature_flags.storage.path')]
-        string $yamlPath,
+        ?string $yamlPath = null,
     ) {
         $this->yamlPath = $yamlPath;
     }
@@ -27,6 +27,9 @@ class YamlFeatureFlagLoader implements FeatureFlagLoaderFactoryInterface
      */
     public function loadFeatureFlags(): array
     {
+        if (!$this->yamlPath) {
+            throw new \InvalidArgumentException('Invalid yaml path');
+        }
         $data = Yaml::parseFile($this->yamlPath);
 
         return $this->parseFeatureFlags($data);
@@ -34,6 +37,6 @@ class YamlFeatureFlagLoader implements FeatureFlagLoaderFactoryInterface
 
     public function supports(string $storageType): bool
     {
-        return $storageType === FeatureFlagStorageType::YAML->value;
+        return $this->yamlPath && $storageType === FeatureFlagStorageType::YAML->value;
     }
 }

@@ -21,7 +21,6 @@ services:
     Tax16\FeatureFlagBundle\Infrastructure\FeatureFlag\Loader\DoctrineFeatureFlagLoader:
         autowire: false
 
-
     Symfony\Component\DependencyInjection\ContainerInterface:
         alias: 'service_container'
 

@@ -81,7 +81,7 @@ class FlagSwitchedService
 }
 ```
 
--**FeatureFlagSwitchClass** with context:
+- **FeatureFlagSwitchClass** with context:
 ```php
 use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Attribute\FeaturesFlagSwitchClass;
 
@@ -97,7 +97,7 @@ class FlagSwitchedService
 }
 ```
 
--**FeatureFlagSwitchClass** with filteredMethod:
+- **FeatureFlagSwitchClass** with filteredMethod:
 ```php
 use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Attribute\FeaturesFlagSwitchClass;
 
@@ -117,7 +117,7 @@ class FlagSwitchedService
 }
 ```
 
--**dependancy injection**:
+- **dependancy injection**:
 One of the challenges we faced was switching from an instance of FlagSwitchedService to FlagService when the feature is activated.
 No worries though — everything works seamlessly. The proxy doesn’t create a new instance of FlagService; instead, it wraps FlagSwitchedService and delegates calls to the FlagService methods when needed.
 ```php
@@ -138,30 +138,23 @@ feature_flags:
     type: json  # Can be 'doctrine', 'yaml' ou 'json'
     path: '%kernel.project_dir%/config/feature_flags.json'
   cache: true # We have already a static cache for multiple call, but this will add psr cache
+  # provider: YourCustomClassProvider # Should implement FeatureFlagProviderInterface (default: the feature flag of the bundle)
 ```
 
 > ℹ️ If you're using Doctrine, make sure to:
-> - Configure the entity mappings
->   - Copy this code to your doctrine mapping services
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-
-<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm"
-                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm
-                                      http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
-    <entity name="Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Entity\FeatureFlag" table="feature_flag">
-        <id name="name" type="string">
-            <generator strategy="NONE"/>
-        </id>
-        <field name="enabled" type="boolean"/>
-        <field name="startDate" type="datetime" nullable="true"/>
-        <field name="endDate" type="datetime" nullable="true"/>
-    </entity>
-</doctrine-mapping>
-```
-
 > - Install the appropriate Doctrine package
+> - Configure the entity mappings in packages/doctrine.yaml
+> - Copy this code to your doctrine mapping services
+```yml
+    mappings:
+        FeatureFlagBundle:
+            type: xml
+            dir: '%kernel.project_dir%/vendor/tax16/feature-flag/src/Infrastructure/FeatureFlag/Resources/config/doctrine'
+            prefix: 'Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Entity'
+            is_bundle: false
+            alias: FeatureFlagBundle
+```
+> - Create your migration
 
 ## 🤝 Contributing
 

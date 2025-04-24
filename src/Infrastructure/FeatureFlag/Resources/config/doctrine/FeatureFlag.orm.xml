@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                   https://raw.github.com/doctrine/doctrine2/master/doctrine-mapping.xsd">
+    <entity name="Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Entity\FeatureFlag"
+            table="feature_flag">
+
+        <unique-constraints>
+            <unique-constraint columns="name"/>
+        </unique-constraints>
+
+        <id name="name" type="string">
+            <generator strategy="NONE"/>
+        </id>
+
+        <field name="enabled" type="boolean"/>
+        <field name="startDate" type="datetime" nullable="true"/>
+        <field name="endDate" type="datetime" nullable="true"/>
+    </entity>
+</doctrine-mapping>

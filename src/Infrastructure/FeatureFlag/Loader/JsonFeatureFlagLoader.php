@@ -13,13 +13,13 @@ class JsonFeatureFlagLoader implements FeatureFlagLoaderFactoryInterface
 {
     use FeatureFlagLoaderTrait;
 
-    private string $jsonPath;
+    private ?string $jsonPath = null;
 
     public function __construct(
         #[Autowire(param: 'feature_flags.storage.path')]
-        string $yamlPath,
+        ?string $jsonPath = null,
     ) {
-        $this->jsonPath = $yamlPath;
+        $this->jsonPath = $jsonPath;
     }
 
     /**
@@ -27,7 +27,7 @@ class JsonFeatureFlagLoader implements FeatureFlagLoaderFactoryInterface
      */
     public function loadFeatureFlags(): array
     {
-        if (!$path = file_get_contents($this->jsonPath)) {
+        if (!$this->jsonPath || !$path = file_get_contents($this->jsonPath)) {
             throw new \InvalidArgumentException('Invalid json path: '.$this->jsonPath);
         }
 
@@ -38,6 +38,6 @@ class JsonFeatureFlagLoader implements FeatureFlagLoaderFactoryInterface
 
     public function supports(string $storageType): bool
     {
-        return $storageType === FeatureFlagStorageType::JSON->value;
+        return $this->jsonPath && $storageType === FeatureFlagStorageType::JSON->value;
     }
 }

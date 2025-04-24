@@ -82,4 +82,32 @@ class FeatureFlag
     {
         return $this->endDate;
     }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function toArray(): array
+    {
+        return [
+            'name' => $this->name,
+            'enabled' => $this->enabled,
+            'startDate' => $this->startDate?->format(\DateTimeInterface::ATOM),
+            'endDate' => $this->endDate?->format(\DateTimeInterface::ATOM),
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     *
+     * @throws \DateMalformedStringException
+     */
+    public static function fromArray(array $data): self
+    {
+        return new self(
+            $data['name'],
+            $data['enabled'],
+            isset($data['startDate']) ? new \DateTimeImmutable($data['startDate']) : null,
+            isset($data['endDate']) ? new \DateTimeImmutable($data['endDate']) : null,
+        );
+    }
 }

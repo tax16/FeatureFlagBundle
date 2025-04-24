@@ -25,6 +25,7 @@ class FeatureFlagConfiguration implements ConfigurationInterface
                     ->end()
                 ->end()
                 ->booleanNode('cache')->defaultTrue()->end()
+                ->integerNode('ttl')->defaultValue(3600)->end()
             ->end();
 
         return $treeBuilder;
