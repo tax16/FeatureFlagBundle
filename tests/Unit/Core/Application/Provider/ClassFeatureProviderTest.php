@@ -6,7 +6,7 @@ use App\Tests\Unit\Core\Application\Provider\FakeClass\FakeMethodClass;
 use App\Tests\Unit\Core\Application\Provider\FakeClass\FakeMultipleFeaturesClass;
 use App\Tests\Unit\Core\Application\Provider\FakeClass\FakeSingleFeatureClass;
 use Codeception\PHPUnit\TestCase;
-use Tax16\FeatureFlagBundle\Core\Application\FeatureFlag\Provider\ClassFeatureProvider;
+use Tax16\FeatureFlagBundle\Core\Application\FeatureFlag\Provider\FeatureFlagAttributeProvider;
 use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Attribute\FeatureFlagSwitchClass;
 use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Attribute\FeatureFlagSwitchMethod;
 use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Attribute\FeaturesFlagSwitchClass;
@@ -16,7 +16,7 @@ class ClassFeatureProviderTest extends TestCase
 {
     public function test_provideClassAttributeConfig_with_single_feature_attribute(): void
     {
-        $config = ClassFeatureProvider::provideClassAttributeConfig(FakeSingleFeatureClass::class);
+        $config = FeatureFlagAttributeProvider::provideClassAttributeConfig(FakeSingleFeatureClass::class);
 
         $this->assertInstanceOf(FeatureFlagSwitchClass::class, $config);
         $this->assertSame('fake_feature', $config->feature);
@@ -24,7 +24,7 @@ class ClassFeatureProviderTest extends TestCase
 
     public function test_provideClassAttributeConfig_with_multiple_features_attribute(): void
     {
-        $config = ClassFeatureProvider::provideClassAttributeConfig(FakeMultipleFeaturesClass::class);
+        $config = FeatureFlagAttributeProvider::provideClassAttributeConfig(FakeMultipleFeaturesClass::class);
 
         $this->assertInstanceOf(FeaturesFlagSwitchClass::class, $config);
         $this->assertSame(['f1', 'f2'], $config->features);
@@ -32,7 +32,7 @@ class ClassFeatureProviderTest extends TestCase
 
     public function test_provideClassAttributeConfig_returns_null_when_no_attribute(): void
     {
-        $config = ClassFeatureProvider::provideClassAttributeConfig(\stdClass::class);
+        $config = FeatureFlagAttributeProvider::provideClassAttributeConfig(\stdClass::class);
 
         $this->assertNull($config);
     }
@@ -40,7 +40,7 @@ class ClassFeatureProviderTest extends TestCase
     public function test_provideMethodAttributeConfig_with_single_feature(): void
     {
         $method = new \ReflectionMethod(FakeMethodClass::class, 'singleFeatureMethod');
-        $config = ClassFeatureProvider::provideMethodAttributeConfig($method);
+        $config = FeatureFlagAttributeProvider::provideMethodAttributeConfig($method);
 
         $this->assertInstanceOf(FeatureFlagSwitchMethod::class, $config);
         $this->assertSame('m1', $config->feature);
@@ -50,7 +50,7 @@ class ClassFeatureProviderTest extends TestCase
     public function test_provideMethodAttributeConfig_with_multiple_features(): void
     {
         $method = new \ReflectionMethod(FakeMethodClass::class, 'multiFeatureMethod');
-        $config = ClassFeatureProvider::provideMethodAttributeConfig($method);
+        $config = FeatureFlagAttributeProvider::provideMethodAttributeConfig($method);
 
         $this->assertInstanceOf(FeaturesFlagSwitchMethod::class, $config);
         $this->assertSame(['f2', 'f3'], $config->features);
@@ -60,6 +60,6 @@ class ClassFeatureProviderTest extends TestCase
     public function test_provideMethodAttributeConfig_returns_null_when_no_attribute(): void
     {
         $method = new \ReflectionMethod(FakeMethodClass::class, 'normalMethod');
-        $this->assertNull(ClassFeatureProvider::provideMethodAttributeConfig($method));
+        $this->assertNull(FeatureFlagAttributeProvider::provideMethodAttributeConfig($method));
     }
 }

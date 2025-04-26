@@ -4,7 +4,7 @@ namespace Tax16\FeatureFlagBundle\Core\Application\FeatureFlag\Handler;
 
 use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Repository\FeatureFlagRepositoryInterface;
 
-class DeleteFeatureFlagHandler
+class FeatureFlagDeleteCommandHandler
 {
     private FeatureFlagRepositoryInterface $repository;
 

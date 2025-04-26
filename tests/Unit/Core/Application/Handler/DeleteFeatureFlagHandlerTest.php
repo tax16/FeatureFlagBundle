@@ -4,7 +4,7 @@ namespace App\Tests\Unit\Core\Application\Handler;
 
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
-use Tax16\FeatureFlagBundle\Core\Application\FeatureFlag\Handler\DeleteFeatureFlagHandler;
+use Tax16\FeatureFlagBundle\Core\Application\FeatureFlag\Handler\FeatureFlagDeleteCommandHandler;
 use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Entity\FeatureFlag;
 use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Repository\FeatureFlagRepositoryInterface;
 
@@ -17,7 +17,7 @@ class DeleteFeatureFlagHandlerTest extends TestCase
     {
         $this->repositoryMock = $this->createMock(FeatureFlagRepositoryInterface::class);
 
-        $this->handler = new DeleteFeatureFlagHandler($this->repositoryMock);
+        $this->handler = new FeatureFlagDeleteCommandHandler($this->repositoryMock);
     }
 
     public function testHandleDeletesFeatureFlagWhenExists()

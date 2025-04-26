@@ -37,7 +37,7 @@ class FeatureFlagProviderTest extends TestCase
 
         $this->loaderMock->method('loadFeatureFlags')->willReturn([$featureFlag]);
 
-        $this->assertTrue($this->featureFlagProvider->provideStateByFlag($flagName));
+        $this->assertTrue($this->featureFlagProvider->isFeatureActive($flagName));
         
     }
 
@@ -48,7 +48,7 @@ class FeatureFlagProviderTest extends TestCase
 
         $this->loaderMock->method('loadFeatureFlags')->willReturn([$featureFlag]);
 
-        $this->assertFalse($this->featureFlagProvider->provideStateByFlag($flagName));
+        $this->assertFalse($this->featureFlagProvider->isFeatureActive($flagName));
         
     }
 
@@ -59,7 +59,7 @@ class FeatureFlagProviderTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Feature flag "unknown_flag" does not exist.');
 
-        $this->featureFlagProvider->provideStateByFlag('unknown_flag');
+        $this->featureFlagProvider->isFeatureActive('unknown_flag');
     }
 
     public function testProvideStateByFlagsReturnsTrueWhenAllFlagsAreEnabled()
@@ -72,7 +72,7 @@ class FeatureFlagProviderTest extends TestCase
 
         $this->loaderMock->method('loadFeatureFlags')->willReturn($featureFlags);
 
-        $this->assertTrue($this->featureFlagProvider->provideStateByFlags($flags));
+        $this->assertTrue($this->featureFlagProvider->isAllFeaturesActive($flags));
         
     }
 
@@ -86,7 +86,7 @@ class FeatureFlagProviderTest extends TestCase
 
         $this->loaderMock->method('loadFeatureFlags')->willReturn($featureFlags);
 
-        $this->assertFalse($this->featureFlagProvider->provideStateByFlags($flags));
+        $this->assertFalse($this->featureFlagProvider->isAllFeaturesActive($flags));
         
     }
 
@@ -99,7 +99,7 @@ class FeatureFlagProviderTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Feature flag "missing_flag" does not exist.');
 
-        $this->featureFlagProvider->provideStateByFlags(['existing_flag', 'missing_flag']);
+        $this->featureFlagProvider->isAllFeaturesActive(['existing_flag', 'missing_flag']);
     }
 
     private function createFeatureFlag(string $name, bool $enabled)

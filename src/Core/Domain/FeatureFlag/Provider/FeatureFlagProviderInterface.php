@@ -9,11 +9,11 @@ interface FeatureFlagProviderInterface
     /**
      * @param array<FeatureFlagContextInterface>|null $context
      */
-    public function provideStateByFlag(string $flag, ?array $context = null): bool;
+    public function isFeatureActive(string $flag, ?array $context = null): bool;
 
     /**
      * @param string[]                                $flags
      * @param array<FeatureFlagContextInterface>|null $context
      */
-    public function provideStateByFlags(array $flags, ?array $context = null): bool;
+    public function isAllFeaturesActive(array $flags, ?array $context = null): bool;
 }

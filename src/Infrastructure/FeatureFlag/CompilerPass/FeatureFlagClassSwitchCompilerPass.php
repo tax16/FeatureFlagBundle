@@ -6,9 +6,9 @@ use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
-use Tax16\FeatureFlagBundle\Core\Application\FeatureFlag\Provider\ClassFeatureProvider;
+use Tax16\FeatureFlagBundle\Core\Application\FeatureFlag\Provider\FeatureFlagAttributeProvider;
 use Tax16\FeatureFlagBundle\Infrastructure\FeatureFlag\CompilerPass\Updater\FeatureFlagContextUpdater;
-use Tax16\FeatureFlagBundle\Infrastructure\FeatureFlag\Proxy\SwitchClassProxyFactory;
+use Tax16\FeatureFlagBundle\Infrastructure\FeatureFlag\ProxyFactory\SwitchClassProxyFactory;
 
 class FeatureFlagClassSwitchCompilerPass extends FeatureFlagContextUpdater implements CompilerPassInterface
 {
@@ -27,7 +27,7 @@ class FeatureFlagClassSwitchCompilerPass extends FeatureFlagContextUpdater imple
                 continue;
             }
 
-            if (!$switchConfig = ClassFeatureProvider::provideClassAttributeConfig($definition->getClass())) {
+            if (!$switchConfig = FeatureFlagAttributeProvider::provideClassAttributeConfig($definition->getClass())) {
                 continue;
             }
 

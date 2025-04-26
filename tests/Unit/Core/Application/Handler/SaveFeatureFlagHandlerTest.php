@@ -4,7 +4,7 @@ namespace App\Tests\Unit\Core\Application\Handler;
 
 use DateTime;
 use PHPUnit\Framework\TestCase;
-use Tax16\FeatureFlagBundle\Core\Application\FeatureFlag\Handler\SaveFeatureFlagHandler;
+use Tax16\FeatureFlagBundle\Core\Application\FeatureFlag\Handler\FeatureFlagSaveCommandHandler;
 use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Entity\FeatureFlag;
 use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Repository\FeatureFlagRepositoryInterface;
 
@@ -17,7 +17,7 @@ class SaveFeatureFlagHandlerTest extends TestCase
     {
         $this->repositoryMock = $this->createMock(FeatureFlagRepositoryInterface::class);
 
-        $this->handler = new SaveFeatureFlagHandler($this->repositoryMock);
+        $this->handler = new FeatureFlagSaveCommandHandler($this->repositoryMock);
     }
 
     public function testHandleCreatesNewFeatureFlagIfNotExists()

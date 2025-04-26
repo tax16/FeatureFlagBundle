@@ -1,10 +1,10 @@
 <?php
 
-namespace Tax16\FeatureFlagBundle\Infrastructure\FeatureFlag\Proxy;
+namespace Tax16\FeatureFlagBundle\Infrastructure\FeatureFlag\ProxyFactory;
 
 use ProxyManager\Factory\AccessInterceptorValueHolderFactory;
 use Tax16\FeatureFlagBundle\Core\Application\FeatureFlag\Checker\ClassChecker;
-use Tax16\FeatureFlagBundle\Core\Application\FeatureFlag\Provider\ClassFeatureProvider;
+use Tax16\FeatureFlagBundle\Core\Application\FeatureFlag\Provider\FeatureFlagAttributeProvider;
 use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Attribute\FeatureFlagSwitchMethod;
 use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Attribute\FeaturesFlagSwitchMethod;
 use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Provider\FeatureFlagProviderInterface;
@@ -56,7 +56,7 @@ readonly class SwitchMethodProxyFactory
 
         foreach ($reflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
             /** @var FeatureFlagSwitchMethod|FeaturesFlagSwitchMethod|null $config */
-            $config = ClassFeatureProvider::provideMethodAttributeConfig($method);
+            $config = FeatureFlagAttributeProvider::provideMethodAttributeConfig($method);
             if (!$config) {
                 continue;
             }
@@ -72,7 +72,7 @@ readonly class SwitchMethodProxyFactory
                 array $params,
                 bool &$returnEarly,
             ) use ($features, $alternativeMethod, $originalMethodName, $service, $config) {
-                if ($this->featureFlagProvider->provideStateByFlags($features, $config->context)) {
+                if ($this->featureFlagProvider->isAllFeaturesActive($features, $config->context)) {
                     $featuresToString = implode(', ', $features);
                     $this->logger->info("Switching method '$originalMethodName' to '$alternativeMethod' (features '$featuresToString' is active)");
 

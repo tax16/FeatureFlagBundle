@@ -1,10 +1,10 @@
 <?php
 
-namespace Tax16\FeatureFlagBundle\Infrastructure\FeatureFlag\Proxy;
+namespace Tax16\FeatureFlagBundle\Infrastructure\FeatureFlag\ProxyFactory;
 
 use ProxyManager\Factory\AccessInterceptorValueHolderFactory;
 use Tax16\FeatureFlagBundle\Core\Application\FeatureFlag\Checker\ClassChecker;
-use Tax16\FeatureFlagBundle\Core\Application\FeatureFlag\Provider\ClassFeatureProvider;
+use Tax16\FeatureFlagBundle\Core\Application\FeatureFlag\Provider\FeatureFlagAttributeProvider;
 use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Attribute\FeatureFlagSwitchClass;
 use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Attribute\FeaturesFlagSwitchClass;
 use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Provider\FeatureFlagProviderInterface;
@@ -55,7 +55,7 @@ readonly class SwitchClassProxyFactory
     private function buildFlagInterceptors(object $service, object $switchedService): array
     {
         /** @var FeatureFlagSwitchClass|FeaturesFlagSwitchClass|null $config */
-        $config = ClassFeatureProvider::provideClassAttributeConfig($service);
+        $config = FeatureFlagAttributeProvider::provideClassAttributeConfig($service);
 
         if (!$config) {
             return [];
@@ -68,7 +68,7 @@ readonly class SwitchClassProxyFactory
         $features = $this->extractFeatureNames($config);
         $featuresToString = implode(', ', $features);
 
-        $isFeatureActivate = $this->featureFlagProvider->provideStateByFlags($features, $config->context);
+        $isFeatureActivate = $this->featureFlagProvider->isAllFeaturesActive($features, $config->context);
         $interceptors = [];
 
         $reflection = new \ReflectionClass($service);

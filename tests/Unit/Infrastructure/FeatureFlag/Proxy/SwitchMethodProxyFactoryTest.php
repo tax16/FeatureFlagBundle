@@ -10,7 +10,7 @@ use BadMethodCallException;
 use PHPUnit\Framework\TestCase;
 use Tax16\FeatureFlagBundle\Core\Application\FeatureFlag\Provider\FeatureFlagProvider;
 use Tax16\FeatureFlagBundle\Core\Domain\Port\ApplicationLoggerInterface;
-use Tax16\FeatureFlagBundle\Infrastructure\FeatureFlag\Proxy\SwitchMethodProxyFactory;
+use Tax16\FeatureFlagBundle\Infrastructure\FeatureFlag\ProxyFactory\SwitchMethodProxyFactory;
 
 class SwitchMethodProxyFactoryTest extends TestCase
 {
@@ -47,7 +47,7 @@ class SwitchMethodProxyFactoryTest extends TestCase
         $service = new FakeClassSwitchMethod();
 
         $this->featureFlagProvider
-            ->method('provideStateByFlags')
+            ->method('isAllFeaturesActive')
             ->willReturn(true);
 
         $this->logger
@@ -64,7 +64,7 @@ class SwitchMethodProxyFactoryTest extends TestCase
         $service = new FakeClassSwitchMethod();
 
         $this->featureFlagProvider
-            ->method('provideStateByFlags')
+            ->method('isAllFeaturesActive')
             ->willReturn(false);
 
         $this->logger
@@ -82,7 +82,7 @@ class SwitchMethodProxyFactoryTest extends TestCase
         $service = new FakeClassSwitchMethodParamDiff();
 
         $this->featureFlagProvider
-            ->method('provideStateByFlags')
+            ->method('isAllFeaturesActive')
             ->willReturn(true);
 
         $this->logger
@@ -103,7 +103,7 @@ class SwitchMethodProxyFactoryTest extends TestCase
         $service = new FakeClassSwitchMethodWithMissingAlternative();
 
         $this->featureFlagProvider
-            ->method('provideStateByFlags')
+            ->method('isAllFeaturesActive')
             ->willReturn(true);
 
         $this->logger

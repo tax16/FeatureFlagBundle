@@ -5,7 +5,7 @@ namespace Tax16\FeatureFlagBundle\Core\Application\FeatureFlag\Handler;
 use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Entity\FeatureFlag;
 use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Repository\FeatureFlagRepositoryInterface;
 
-class SaveFeatureFlagHandler
+class FeatureFlagSaveCommandHandler
 {
     private FeatureFlagRepositoryInterface $repository;
 

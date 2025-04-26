@@ -8,17 +8,16 @@ use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 use Tax16\FeatureFlagBundle\Core\Application\FeatureFlag\Provider\FeatureFlagAttributeProvider;
 use Tax16\FeatureFlagBundle\Infrastructure\FeatureFlag\CompilerPass\Updater\FeatureFlagContextUpdater;
-use Tax16\FeatureFlagBundle\Infrastructure\FeatureFlag\ProxyFactory\SwitchMethodProxyFactory;
+use Tax16\FeatureFlagBundle\Infrastructure\FeatureFlag\ProxyFactory\FeatureFlagStatusProxyFactory;
 
-class FeatureFlagMethodSwitchCompilerPass extends FeatureFlagContextUpdater implements CompilerPassInterface
+class FeatureFlagStatusCheckCompilerPass extends FeatureFlagContextUpdater implements CompilerPassInterface
 {
-    public function process(ContainerBuilder $container): void
+    /**
+     * @inheritDoc
+     */
+    public function process(ContainerBuilder $container)
     {
-        if (!$container->has(SwitchMethodProxyFactory::class)) {
-            return;
-        }
-
-        $factoryReference = new Reference(SwitchMethodProxyFactory::class);
+        $factoryReference = new Reference(FeatureFlagStatusProxyFactory::class);
 
         foreach ($container->getDefinitions() as $id => $definition) {
             $class = $definition->getClass();
@@ -26,10 +25,18 @@ class FeatureFlagMethodSwitchCompilerPass extends FeatureFlagContextUpdater impl
                 continue;
             }
 
-            $reflection = new \ReflectionClass($class);
+            if (FeatureFlagAttributeProvider::provideClassStatusAttributeConfig($definition->getClass())) {
+                $definition->setFactory([$factoryReference, 'createByClass']);
+                $definition->setArguments([
+                    new Reference($class)
+                ]);
 
+                continue;
+            }
+
+            $reflection = new \ReflectionClass($class);
             foreach ($reflection->getMethods() as $method) {
-                $config = FeatureFlagAttributeProvider::provideMethodAttributeConfig($method);
+                $config = FeatureFlagAttributeProvider::provideMethodStatusAttributeConfig($method);
                 if (!$config) {
                     continue;
                 }
@@ -38,15 +45,14 @@ class FeatureFlagMethodSwitchCompilerPass extends FeatureFlagContextUpdater impl
                 $container->setDefinition($originalServiceId, $originalDefinition);
 
                 $proxyDefinition = new Definition($class);
-                $proxyDefinition->setFactory([$factoryReference, 'createProxy']);
+                $proxyDefinition->setFactory([$factoryReference, 'createByMethod']);
                 $proxyDefinition->setArguments([
                     new Reference($originalServiceId),
                 ]);
 
                 $container->setDefinition($id, $proxyDefinition);
-
-                $this->updateContextClassToPublic($config->context, $container);
             }
+
         }
     }
 }
