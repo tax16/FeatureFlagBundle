@@ -1,16 +1,17 @@
 <?php
 
-namespace App\Tests\Unit\Infrastructure\FeatureFlag\Proxy;
+namespace App\Tests\Unit\Core\Application\Proxy;
 
-use App\Tests\Unit\Infrastructure\FeatureFlag\Proxy\FakeClass\FakeClassOne;
-use App\Tests\Unit\Infrastructure\FeatureFlag\Proxy\FakeClass\FakeClassSwitchMethod;
-use App\Tests\Unit\Infrastructure\FeatureFlag\Proxy\FakeClass\FakeClassSwitchMethodParamDiff;
-use App\Tests\Unit\Infrastructure\FeatureFlag\Proxy\FakeClass\FakeClassSwitchMethodWithMissingAlternative;
+use App\Tests\Unit\Core\Application\Proxy\FakeClass\FakeClassOne;
+use App\Tests\Unit\Core\Application\Proxy\FakeClass\FakeClassSwitchMethod;
+use App\Tests\Unit\Core\Application\Proxy\FakeClass\FakeClassSwitchMethodParamDiff;
+use App\Tests\Unit\Core\Application\Proxy\FakeClass\FakeClassSwitchMethodWithMissingAlternative;
 use BadMethodCallException;
 use PHPUnit\Framework\TestCase;
 use Tax16\FeatureFlagBundle\Core\Application\FeatureFlag\Provider\FeatureFlagProvider;
+use Tax16\FeatureFlagBundle\Core\Application\FeatureFlag\ProxyFactory\SwitchMethodProxyFactory;
 use Tax16\FeatureFlagBundle\Core\Domain\Port\ApplicationLoggerInterface;
-use Tax16\FeatureFlagBundle\Infrastructure\FeatureFlag\ProxyFactory\SwitchMethodProxyFactory;
+use Tax16\FeatureFlagBundle\Infrastructure\Adapter\ProxyInterceptorAdapter;
 
 class SwitchMethodProxyFactoryTest extends TestCase
 {
@@ -27,10 +28,12 @@ class SwitchMethodProxyFactoryTest extends TestCase
     {
         $this->logger = $this->createMock(ApplicationLoggerInterface::class);
         $this->featureFlagProvider = $this->createMock(FeatureFlagProvider::class);
+        $this->proxyInterceptor = new ProxyInterceptorAdapter();
 
         $this->proxyFactory = new SwitchMethodProxyFactory(
             $this->logger,
-            $this->featureFlagProvider
+            $this->featureFlagProvider,
+            $this->proxyInterceptor
         );
     }
 
@@ -47,7 +50,7 @@ class SwitchMethodProxyFactoryTest extends TestCase
         $service = new FakeClassSwitchMethod();
 
         $this->featureFlagProvider
-            ->method('isAllFeaturesActive')
+            ->method('areAllFeaturesActive')
             ->willReturn(true);
 
         $this->logger
@@ -64,7 +67,7 @@ class SwitchMethodProxyFactoryTest extends TestCase
         $service = new FakeClassSwitchMethod();
 
         $this->featureFlagProvider
-            ->method('isAllFeaturesActive')
+            ->method('areAllFeaturesActive')
             ->willReturn(false);
 
         $this->logger
@@ -82,7 +85,7 @@ class SwitchMethodProxyFactoryTest extends TestCase
         $service = new FakeClassSwitchMethodParamDiff();
 
         $this->featureFlagProvider
-            ->method('isAllFeaturesActive')
+            ->method('areAllFeaturesActive')
             ->willReturn(true);
 
         $this->logger
@@ -103,7 +106,7 @@ class SwitchMethodProxyFactoryTest extends TestCase
         $service = new FakeClassSwitchMethodWithMissingAlternative();
 
         $this->featureFlagProvider
-            ->method('isAllFeaturesActive')
+            ->method('areAllFeaturesActive')
             ->willReturn(true);
 
         $this->logger
@@ -114,7 +117,7 @@ class SwitchMethodProxyFactoryTest extends TestCase
         $proxy = $this->proxyFactory->createProxy($service);
 
         $this->expectException(BadMethodCallException::class);
-        $this->expectExceptionMessage("The method 'alternativeMethod' does not exist on App\Tests\Unit\Infrastructure\FeatureFlag\Proxy\FakeClass\FakeClassSwitchMethodWithMissingAlternative");
+        $this->expectExceptionMessage("The method 'alternativeMethod' does not exist on App\Tests\Unit\Core\Application\Proxy\FakeClass\FakeClassSwitchMethodWithMissingAlternative");
 
         $proxy->execute();
     }

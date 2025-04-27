@@ -13,6 +13,6 @@ class FeatureFlagActiveException extends DomainException
     {
         $flagsString = implode(', ', $flags);
 
-        parent::__construct("Feature flags with NAMES {$flagsString} are already active.");
+        parent::__construct("Feature flags with name(s) {$flagsString} are already active.");
     }
 }

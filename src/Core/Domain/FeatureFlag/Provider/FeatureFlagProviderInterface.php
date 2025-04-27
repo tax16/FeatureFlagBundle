@@ -15,5 +15,5 @@ interface FeatureFlagProviderInterface
      * @param string[]                                $flags
      * @param array<FeatureFlagContextInterface>|null $context
      */
-    public function isAllFeaturesActive(array $flags, ?array $context = null): bool;
+    public function areAllFeaturesActive(array $flags, ?array $context = null): bool;
 }

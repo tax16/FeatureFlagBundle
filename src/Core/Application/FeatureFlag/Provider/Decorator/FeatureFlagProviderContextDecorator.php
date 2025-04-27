@@ -45,12 +45,12 @@ readonly class FeatureFlagProviderContextDecorator implements FeatureFlagProvide
         return true;
     }
 
-    public function isAllFeaturesActive(array $flags, ?array $context = null): bool
+    public function areAllFeaturesActive(array $flags, ?array $context = null): bool
     {
         if (!empty($context) && !$this->checkContext($context)) {
             return false;
         }
 
-        return $this->decoratedProvider->isAllFeaturesActive($flags);
+        return $this->decoratedProvider->areAllFeaturesActive($flags);
     }
 }

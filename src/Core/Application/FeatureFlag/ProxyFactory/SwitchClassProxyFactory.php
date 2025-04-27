@@ -1,20 +1,21 @@
 <?php
 
-namespace Tax16\FeatureFlagBundle\Infrastructure\FeatureFlag\ProxyFactory;
+namespace Tax16\FeatureFlagBundle\Core\Application\FeatureFlag\ProxyFactory;
 
-use ProxyManager\Factory\AccessInterceptorValueHolderFactory;
 use Tax16\FeatureFlagBundle\Core\Application\FeatureFlag\Checker\ClassChecker;
 use Tax16\FeatureFlagBundle\Core\Application\FeatureFlag\Provider\FeatureFlagAttributeProvider;
 use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Attribute\FeatureFlagSwitchClass;
 use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Attribute\FeaturesFlagSwitchClass;
 use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Provider\FeatureFlagProviderInterface;
 use Tax16\FeatureFlagBundle\Core\Domain\Port\ApplicationLoggerInterface;
+use Tax16\FeatureFlagBundle\Core\Domain\Port\ProxyInterceptorInterface;
 
 readonly class SwitchClassProxyFactory
 {
     public function __construct(
         private ApplicationLoggerInterface $logger,
         private FeatureFlagProviderInterface $featureFlagProvider,
+        private ProxyInterceptorInterface $proxyInterceptor,
     ) {
     }
 
@@ -23,10 +24,9 @@ readonly class SwitchClassProxyFactory
      */
     public function createProxy(object $service, object $switchedService): object
     {
-        $factory = new AccessInterceptorValueHolderFactory();
         $interceptors = $this->buildFlagInterceptors($service, $switchedService);
 
-        return $factory->createProxy($service, $interceptors);
+        return $this->proxyInterceptor->createProxy($service, $interceptors);
     }
 
     /**
@@ -68,12 +68,16 @@ readonly class SwitchClassProxyFactory
         $features = $this->extractFeatureNames($config);
         $featuresToString = implode(', ', $features);
 
-        $isFeatureActivate = $this->featureFlagProvider->isAllFeaturesActive($features, $config->context);
+        $isFeatureActivate = $this->featureFlagProvider->areAllFeaturesActive($features, $config->context);
         $interceptors = [];
 
         $reflection = new \ReflectionClass($service);
         foreach ($reflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
             if ('__construct' === $method->getName()) {
+                continue;
+            }
+
+            if (!empty($config->filteredMethod) && !in_array($method->getName(), $config->filteredMethod)) {
                 continue;
             }
 

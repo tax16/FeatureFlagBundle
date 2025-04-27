@@ -12,7 +12,7 @@ use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Attribute\FeatureFlagSwitchM
 use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Attribute\FeaturesFlagSwitchClass;
 use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Attribute\FeaturesFlagSwitchMethod;
 
-class ClassFeatureProviderTest extends TestCase
+class FeatureFlagAttributeProviderTest extends TestCase
 {
     public function test_provideClassAttributeConfig_with_single_feature_attribute(): void
     {

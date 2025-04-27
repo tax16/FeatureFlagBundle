@@ -50,7 +50,7 @@ class FeatureFlagProvider implements FeatureFlagProviderInterface
      * Check if all given feature flags are enabled.
      * {@inheritDoc}
      */
-    public function isAllFeaturesActive(array $flags, ?array $context = null): bool
+    public function areAllFeaturesActive(array $flags, ?array $context = null): bool
     {
         $this->loadFeatureStates();
 

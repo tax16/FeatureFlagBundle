@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Tests\Unit\Infrastructure\FeatureFlag\Proxy\FakeClass;
+namespace App\Tests\Unit\Core\Application\Proxy\FakeClass;
 
 use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Attribute\FeatureFlagSwitchMethod;
 

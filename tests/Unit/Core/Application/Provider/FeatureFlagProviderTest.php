@@ -72,7 +72,7 @@ class FeatureFlagProviderTest extends TestCase
 
         $this->loaderMock->method('loadFeatureFlags')->willReturn($featureFlags);
 
-        $this->assertTrue($this->featureFlagProvider->isAllFeaturesActive($flags));
+        $this->assertTrue($this->featureFlagProvider->areAllFeaturesActive($flags));
         
     }
 
@@ -86,7 +86,7 @@ class FeatureFlagProviderTest extends TestCase
 
         $this->loaderMock->method('loadFeatureFlags')->willReturn($featureFlags);
 
-        $this->assertFalse($this->featureFlagProvider->isAllFeaturesActive($flags));
+        $this->assertFalse($this->featureFlagProvider->areAllFeaturesActive($flags));
         
     }
 
@@ -99,7 +99,7 @@ class FeatureFlagProviderTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Feature flag "missing_flag" does not exist.');
 
-        $this->featureFlagProvider->isAllFeaturesActive(['existing_flag', 'missing_flag']);
+        $this->featureFlagProvider->areAllFeaturesActive(['existing_flag', 'missing_flag']);
     }
 
     private function createFeatureFlag(string $name, bool $enabled)

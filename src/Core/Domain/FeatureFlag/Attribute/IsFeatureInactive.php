@@ -15,7 +15,7 @@ class IsFeatureInactive
     public function __construct(
         public array $features,
         public array $context = [],
-        public string $exception = FeatureFlagActiveException::class
+        public string $exception = FeatureFlagActiveException::class,
     ) {
     }
 }

@@ -9,6 +9,7 @@ use Tax16\FeatureFlagBundle\Infrastructure\FeatureFlag\CompilerPass\FeatureFlagC
 use Tax16\FeatureFlagBundle\Infrastructure\FeatureFlag\CompilerPass\FeatureFlagClassSwitchCompilerPass;
 use Tax16\FeatureFlagBundle\Infrastructure\FeatureFlag\CompilerPass\FeatureFlagMethodSwitchCompilerPass;
 use Tax16\FeatureFlagBundle\Infrastructure\FeatureFlag\CompilerPass\FeatureFlagConfigProviderCompilerPass;
+use Tax16\FeatureFlagBundle\Infrastructure\FeatureFlag\CompilerPass\FeatureFlagStatusCheckCompilerPass;
 use Tax16\FeatureFlagBundle\Infrastructure\FeatureFlag\DependencyInjection\FeatureFlagExtension;
 
 class FeatureFlagBundle extends Bundle
@@ -21,7 +22,8 @@ class FeatureFlagBundle extends Bundle
             ->addCompilerPass(new FeatureFlagConfigProviderCompilerPass())
             ->addCompilerPass(new FeatureFlagMethodSwitchCompilerPass())
             ->addCompilerPass(new FeatureFlagCacheLoaderCompilerPass())
-            ->addCompilerPass(new FeatureFlagClassSwitchCompilerPass());
+            ->addCompilerPass(new FeatureFlagClassSwitchCompilerPass())
+            ->addCompilerPass(new FeatureFlagStatusCheckCompilerPass());
     }
 
     public function getContainerExtension(): ?ExtensionInterface

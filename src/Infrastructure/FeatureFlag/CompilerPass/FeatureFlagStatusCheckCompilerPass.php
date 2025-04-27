@@ -7,30 +7,33 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 use Tax16\FeatureFlagBundle\Core\Application\FeatureFlag\Provider\FeatureFlagAttributeProvider;
+use Tax16\FeatureFlagBundle\Core\Application\FeatureFlag\ProxyFactory\StatusCheckProxyFactory;
+use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Context\FeatureFlagContextInterface;
 use Tax16\FeatureFlagBundle\Infrastructure\FeatureFlag\CompilerPass\Updater\FeatureFlagContextUpdater;
-use Tax16\FeatureFlagBundle\Infrastructure\FeatureFlag\ProxyFactory\FeatureFlagStatusProxyFactory;
 
 class FeatureFlagStatusCheckCompilerPass extends FeatureFlagContextUpdater implements CompilerPassInterface
 {
-    /**
-     * @inheritDoc
-     */
     public function process(ContainerBuilder $container)
     {
-        $factoryReference = new Reference(FeatureFlagStatusProxyFactory::class);
+        $factoryReference = new Reference(StatusCheckProxyFactory::class);
 
         foreach ($container->getDefinitions() as $id => $definition) {
+            if ($definition->isAbstract()) {
+                continue;
+            }
+
+            $isController = $definition->hasTag('controller.service_arguments');
+            if ($isController) {
+                continue;
+            }
+
             $class = $definition->getClass();
             if (!$class || !class_exists($class)) {
                 continue;
             }
 
-            if (FeatureFlagAttributeProvider::provideClassStatusAttributeConfig($definition->getClass())) {
-                $definition->setFactory([$factoryReference, 'createByClass']);
-                $definition->setArguments([
-                    new Reference($class)
-                ]);
-
+            if ($config = FeatureFlagAttributeProvider::provideClassStatusAttributeConfig($definition->getClass())) {
+                $this->createProxyDefinition($definition, $id, $container, $class, $factoryReference, 'createByClass', $config->context);
                 continue;
             }
 
@@ -40,19 +43,36 @@ class FeatureFlagStatusCheckCompilerPass extends FeatureFlagContextUpdater imple
                 if (!$config) {
                     continue;
                 }
-                $originalDefinition = clone $definition;
-                $originalServiceId = $id.'.original';
-                $container->setDefinition($originalServiceId, $originalDefinition);
-
-                $proxyDefinition = new Definition($class);
-                $proxyDefinition->setFactory([$factoryReference, 'createByMethod']);
-                $proxyDefinition->setArguments([
-                    new Reference($originalServiceId),
-                ]);
-
-                $container->setDefinition($id, $proxyDefinition);
+                $this->createProxyDefinition($definition, $id, $container, $class, $factoryReference, 'createByMethod', $config->context);
             }
 
         }
+    }
+
+    /**
+     * @param array<FeatureFlagContextInterface> $context
+     */
+    public function createProxyDefinition(
+        Definition $definition,
+        string $id,
+        ContainerBuilder $container,
+        string $class,
+        Reference $factoryReference,
+        string $functionName,
+        array $context = [],
+    ): void {
+        $originalDefinition = clone $definition;
+        $originalServiceId = $id.'.original';
+        $container->setDefinition($originalServiceId, $originalDefinition);
+
+        $proxyDefinition = new Definition($class);
+        $proxyDefinition->setFactory([$factoryReference, $functionName]);
+        $proxyDefinition->setArguments([
+            new Reference($originalServiceId),
+        ]);
+
+        $container->setDefinition($id, $proxyDefinition);
+
+        $this->updateContextClassToPublic($context, $container);
     }
 }

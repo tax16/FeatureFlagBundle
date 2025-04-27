@@ -64,7 +64,6 @@ class FeatureFlagAttributeProvider
         return $attribute;
     }
 
-
     public static function provideClassStatusAttributeConfig(mixed $service): IsFeatureInactive|IsFeatureActive|null
     {
         $reflection = new \ReflectionClass($service);
@@ -84,8 +83,7 @@ class FeatureFlagAttributeProvider
     private static function resolveAttributeInstance(
         mixed $reflection,
         array $attributeClasses,
-    ): ?object
-    {
+    ): ?object {
         foreach ($attributeClasses as $attributeClass) {
             foreach ($reflection->getAttributes($attributeClass) as $attribute) {
                 $instance = $attribute->newInstance();

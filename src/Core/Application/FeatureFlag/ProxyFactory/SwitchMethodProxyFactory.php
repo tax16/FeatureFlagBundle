@@ -1,29 +1,32 @@
 <?php
 
-namespace Tax16\FeatureFlagBundle\Infrastructure\FeatureFlag\ProxyFactory;
+namespace Tax16\FeatureFlagBundle\Core\Application\FeatureFlag\ProxyFactory;
 
-use ProxyManager\Factory\AccessInterceptorValueHolderFactory;
 use Tax16\FeatureFlagBundle\Core\Application\FeatureFlag\Checker\ClassChecker;
 use Tax16\FeatureFlagBundle\Core\Application\FeatureFlag\Provider\FeatureFlagAttributeProvider;
 use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Attribute\FeatureFlagSwitchMethod;
 use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Attribute\FeaturesFlagSwitchMethod;
 use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Provider\FeatureFlagProviderInterface;
 use Tax16\FeatureFlagBundle\Core\Domain\Port\ApplicationLoggerInterface;
+use Tax16\FeatureFlagBundle\Core\Domain\Port\ProxyInterceptorInterface;
 
 readonly class SwitchMethodProxyFactory
 {
     public function __construct(
         private ApplicationLoggerInterface $logger,
         private FeatureFlagProviderInterface $featureFlagProvider,
+        private ProxyInterceptorInterface $proxyInterceptor,
     ) {
     }
 
+    /**
+     * @throws \ReflectionException
+     */
     public function createProxy(object $service): object
     {
-        $factory = new AccessInterceptorValueHolderFactory();
         $interceptors = $this->buildFlagInterceptors($service);
 
-        return $factory->createProxy($service, $interceptors);
+        return $this->proxyInterceptor->createProxy($service, $interceptors);
     }
 
     /**
@@ -65,6 +68,7 @@ readonly class SwitchMethodProxyFactory
             $alternativeMethod = $config->method;
 
             $originalMethodName = $method->getName();
+
             $interceptors[$originalMethodName] = function (
                 object $proxy,
                 object $instance,
@@ -72,7 +76,7 @@ readonly class SwitchMethodProxyFactory
                 array $params,
                 bool &$returnEarly,
             ) use ($features, $alternativeMethod, $originalMethodName, $service, $config) {
-                if ($this->featureFlagProvider->isAllFeaturesActive($features, $config->context)) {
+                if ($this->featureFlagProvider->areAllFeaturesActive($features, $config->context)) {
                     $featuresToString = implode(', ', $features);
                     $this->logger->info("Switching method '$originalMethodName' to '$alternativeMethod' (features '$featuresToString' is active)");
 
