@@ -30,6 +30,8 @@ readonly class StatusCheckProxyFactory
         try {
             $this->validateFeature($config);
         } catch (\Exception $exception) {
+            $this->logger->info('Feature not enable for this class: '.$service::class);
+
             $interceptors = $this->buildClassInterceptors($service, $exception);
 
             return $this->proxyInterceptor->createProxy($service, $interceptors);
@@ -40,7 +42,7 @@ readonly class StatusCheckProxyFactory
 
     public function createByMethod(object $service): object
     {
-        $interceptors = $this->buildMethodFlagInterceptors($service);
+        $interceptors = $this->buildFlagInterceptors($service);
 
         return $this->proxyInterceptor->createProxy($service, $interceptors);
     }
@@ -75,7 +77,7 @@ readonly class StatusCheckProxyFactory
     /**
      * @return array<string, \Closure>
      */
-    private function buildMethodFlagInterceptors(object $service): array
+    private function buildFlagInterceptors(object $service): array
     {
         $this->logger->info('Check State of Feature(s) to the method of class: '.$service::class);
 
@@ -148,9 +150,7 @@ readonly class StatusCheckProxyFactory
     private function checkAndThrowException(string $exception, array $features): void
     {
         if (is_a($exception, \Throwable::class, true)) {
-            $featuresToString = implode(',', $features);
-
-            throw new $exception($featuresToString);
+            throw new $exception(implode(',', $features));
         }
 
         throw new \InvalidArgumentException("Class $exception must be a Throwable.");

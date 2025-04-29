@@ -6,6 +6,7 @@ use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Attribute\FeatureFlagSwitchC
 use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Attribute\FeatureFlagSwitchMethod;
 use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Attribute\FeaturesFlagSwitchClass;
 use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Attribute\FeaturesFlagSwitchMethod;
+use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Attribute\FeaturesFlagSwitchRoute;
 use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Attribute\IsFeatureActive;
 use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Attribute\IsFeatureInactive;
 
@@ -72,6 +73,17 @@ class FeatureFlagAttributeProvider
         $attribute = self::resolveAttributeInstance(
             $reflection,
             self::STATUS_ATTRIBUTE
+        );
+
+        return $attribute;
+    }
+
+    public static function provideSwitchRouteAttributeConfig(\ReflectionMethod $method): ?FeaturesFlagSwitchRoute
+    {
+        /** @var FeaturesFlagSwitchRoute|null $attribute */
+        $attribute = self::resolveAttributeInstance(
+            $method,
+            [FeaturesFlagSwitchRoute::class]
         );
 
         return $attribute;

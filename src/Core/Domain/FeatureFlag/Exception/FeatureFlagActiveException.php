@@ -6,13 +6,8 @@ use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Exception\Abstract\DomainExc
 
 class FeatureFlagActiveException extends DomainException
 {
-    /**
-     * @param array<string> $flags
-     */
-    public function __construct(array $flags)
+    public function __construct(string $flagsString)
     {
-        $flagsString = implode(', ', $flags);
-
         parent::__construct("Feature flags with name(s) {$flagsString} are already active.");
     }
 }
