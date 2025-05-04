@@ -14,13 +14,13 @@ readonly class FeatureFlagProviderContextDecorator implements FeatureFlagProvide
     ) {
     }
 
-    public function provideStateByFlag(string $flag, ?array $context = null): bool
+    public function isFeatureActive(string $flag, ?array $context = null): bool
     {
         if (!empty($context) && !$this->checkContext($context)) {
             return false;
         }
 
-        return $this->decoratedProvider->provideStateByFlag($flag);
+        return $this->decoratedProvider->isFeatureActive($flag);
     }
 
     /**
@@ -45,12 +45,12 @@ readonly class FeatureFlagProviderContextDecorator implements FeatureFlagProvide
         return true;
     }
 
-    public function provideStateByFlags(array $flags, ?array $context = null): bool
+    public function areAllFeaturesActive(array $flags, ?array $context = null): bool
     {
         if (!empty($context) && !$this->checkContext($context)) {
             return false;
         }
 
-        return $this->decoratedProvider->provideStateByFlags($flags);
+        return $this->decoratedProvider->areAllFeaturesActive($flags);
     }
 }

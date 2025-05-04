@@ -2,6 +2,12 @@
 
 namespace App\Tests\Unit\Core\Application\Checker;
 
+use App\Tests\Unit\Core\Application\Checker\FakeClass\CompatibleOriginal;
+use App\Tests\Unit\Core\Application\Checker\FakeClass\CompatibleSwitched;
+use App\Tests\Unit\Core\Application\Checker\FakeClass\MissingMethodSwitched;
+use App\Tests\Unit\Core\Application\Checker\FakeClass\OptionalMismatchSwitched;
+use App\Tests\Unit\Core\Application\Checker\FakeClass\PartialSwitched;
+use App\Tests\Unit\Core\Application\Checker\FakeClass\TypeMismatchSwitched;
 use PHPUnit\Framework\TestCase;
 use Tax16\FeatureFlagBundle\Core\Application\FeatureFlag\Checker\ClassChecker;
 

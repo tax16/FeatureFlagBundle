@@ -33,7 +33,7 @@ class FeatureFlagProvider implements FeatureFlagProviderInterface
         }
     }
 
-    public function provideStateByFlag(string $flag, ?array $context = null): bool
+    public function isFeatureActive(string $flag, ?array $context = null): bool
     {
         $this->loadFeatureStates();
 
@@ -50,7 +50,7 @@ class FeatureFlagProvider implements FeatureFlagProviderInterface
      * Check if all given feature flags are enabled.
      * {@inheritDoc}
      */
-    public function provideStateByFlags(array $flags, ?array $context = null): bool
+    public function areAllFeaturesActive(array $flags, ?array $context = null): bool
     {
         $this->loadFeatureStates();
 
