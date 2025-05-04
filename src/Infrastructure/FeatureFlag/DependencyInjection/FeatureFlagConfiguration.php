@@ -24,6 +24,7 @@ class FeatureFlagConfiguration implements ConfigurationInterface
                         ->scalarNode('path')->defaultValue(null)->end()
                     ->end()
                 ->end()
+                ->booleanNode('controller_check')->defaultFalse()->end()
                 ->booleanNode('cache')->defaultTrue()->end()
                 ->integerNode('ttl')->defaultValue(3600)->end()
             ->end();

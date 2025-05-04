@@ -5,7 +5,8 @@ namespace App\Tests\Unit\Core\Application\Handler;
 use App\Tests\Unit\Core\Application\Handler\FakeClass\FakeControllerWithFeatureFlag;
 use App\Tests\Unit\Core\Application\Handler\FakeClass\FakeControllerWithoutFeatureFlag;
 use Codeception\PHPUnit\TestCase;
-use Tax16\FeatureFlagBundle\Core\Application\FeatureFlag\Handler\FeatureFlagSwitchRouteRouteHandler;
+use Tax16\FeatureFlagBundle\Core\Application\FeatureFlag\Handler\FeatureFlagControllerRouteHandler;
+use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Checker\FeatureFlagStateAccessCheckerInterface;
 use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Provider\FeatureFlagProviderInterface;
 use Tax16\FeatureFlagBundle\Core\Domain\Port\ApplicationLoggerInterface;
 
@@ -13,15 +14,18 @@ class FeatureFlagSwitchRouteRouteHandlerTest extends TestCase
 {
     private FeatureFlagProviderInterface $featureFlagProvider;
     private ApplicationLoggerInterface $logger;
-    private FeatureFlagSwitchRouteRouteHandler $handler;
+    private FeatureFlagControllerRouteHandler $handler;
+    private FeatureFlagStateAccessCheckerInterface $accessChecker;
 
     protected function setUp(): void
     {
         $this->featureFlagProvider = $this->createMock(FeatureFlagProviderInterface::class);
         $this->logger = $this->createMock(ApplicationLoggerInterface::class);
-        $this->handler = new FeatureFlagSwitchRouteRouteHandler(
+        $this->accessChecker = $this->createMock(FeatureFlagStateAccessCheckerInterface::class);
+        $this->handler = new FeatureFlagControllerRouteHandler(
             $this->featureFlagProvider,
-            $this->logger
+            $this->logger,
+            $this->accessChecker
         );
     }
 

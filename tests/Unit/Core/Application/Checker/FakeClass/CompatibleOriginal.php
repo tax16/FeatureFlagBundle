@@ -1,8 +1,7 @@
 <?php
+namespace App\Tests\Unit\Core\Application\Checker\FakeClass;
 
-namespace App\Tests\Unit\Core\Application\Checker;
-
-class CompatibleSwitched
+class CompatibleOriginal
 {
     public function doSomething(string $name): string { return ''; }
     public function optionalMethod(int $a = 5): int { return $a; }

@@ -17,11 +17,9 @@ class FeatureFlagExtension extends Extension
     /**
      * @param mixed[] $configs
      *
-     * @return void
-     *
      * @throws \Exception
      */
-    public function load(array $configs, ContainerBuilder $container)
+    public function load(array $configs, ContainerBuilder $container): void
     {
         $loader = new YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services.yaml');
@@ -29,10 +27,22 @@ class FeatureFlagExtension extends Extension
         $configuration = new FeatureFlagConfiguration();
         $config = $this->processConfiguration($configuration, $configs);
 
-        $container->setParameter('feature_flags.provider', $config['provider']);
-        $container->setParameter('feature_flags.cache', $config['cache']);
-        $container->setParameter('feature_flags.storage.path', $config['storage']['path']);
-        $container->setParameter('feature_flags.storage.type', $config['storage']['type']);
-        $container->setParameter('feature_flags.ttl', $config['ttl']);
+        $this->setFeatureFlagParameters($container, $config);
+    }
+
+    /**
+     * @param mixed[] $config
+     */
+    private function setFeatureFlagParameters(ContainerBuilder $container, array $config, string $prefix = 'feature_flags'): void
+    {
+        foreach ($config as $key => $value) {
+            $paramName = "$prefix.$key";
+
+            if (is_array($value)) {
+                $this->setFeatureFlagParameters($container, $value, $paramName);
+            } else {
+                $container->setParameter($paramName, $value);
+            }
+        }
     }
 }

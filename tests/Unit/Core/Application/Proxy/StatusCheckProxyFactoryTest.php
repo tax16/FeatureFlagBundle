@@ -5,28 +5,27 @@ namespace App\Tests\Unit\Core\Application\Proxy;
 use App\Tests\Unit\Core\Application\Proxy\FakeClass\FakeServiceWithFeature;
 use PHPUnit\Framework\TestCase;
 use Tax16\FeatureFlagBundle\Core\Application\FeatureFlag\ProxyFactory\StatusCheckProxyFactory;
-use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Attribute\IsFeatureActive;
-use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Provider\FeatureFlagProviderInterface;
+use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Checker\FeatureFlagStateAccessCheckerInterface;
 use Tax16\FeatureFlagBundle\Core\Domain\Port\ApplicationLoggerInterface;
 use Tax16\FeatureFlagBundle\Core\Domain\Port\ProxyInterceptorInterface;
 
-class StatusCheckProxyFactoryTest  extends TestCase
+class StatusCheckProxyFactoryTest extends TestCase
 {
     private StatusCheckProxyFactory $factory;
     private ApplicationLoggerInterface $logger;
-    private FeatureFlagProviderInterface $featureFlagProvider;
+    private FeatureFlagStateAccessCheckerInterface $accessChecker;
     private ProxyInterceptorInterface $proxyInterceptor;
 
     protected function setUp(): void
     {
         $this->logger = $this->createMock(ApplicationLoggerInterface::class);
-        $this->featureFlagProvider = $this->createMock(FeatureFlagProviderInterface::class);
+        $this->accessChecker = $this->createMock(FeatureFlagStateAccessCheckerInterface::class);
         $this->proxyInterceptor = $this->createMock(ProxyInterceptorInterface::class);
 
         $this->factory = new StatusCheckProxyFactory(
             $this->logger,
-            $this->featureFlagProvider,
             $this->proxyInterceptor,
+            $this->accessChecker
         );
     }
 
@@ -34,77 +33,43 @@ class StatusCheckProxyFactoryTest  extends TestCase
     {
         $service = new \stdClass();
 
-        $proxy = $this->factory->createByClass($service);
+        $result = $this->factory->createByClass($service);
 
-        $this->assertSame($service, $proxy);
+        $this->assertSame($service, $result);
     }
 
-
-    public function testCreateByClassWithInvalidFeatureThrowsExceptionAndReturnsProxy()
+    public function testCreateByClassWithInvalidFeatureThrowsExceptionAndReturnsProxy(): void
     {
         $service = new FakeServiceWithFeature();
 
-        $this->featureFlagProvider
-            ->method('areAllFeaturesActive')
-            ->willReturn(false);
+        $this->accessChecker
+            ->method('check')
+            ->willThrowException(new \RuntimeException('Feature disabled'));
 
         $this->proxyInterceptor
+            ->expects($this->once())
             ->method('createProxy')
             ->willReturn(new \stdClass());
 
-        $proxy = $this->factory->createByClass($service);
+        $result = $this->factory->createByClass($service);
 
-        $this->assertInstanceOf(\stdClass::class, $proxy);
+        $this->assertInstanceOf(\stdClass::class, $result);
     }
 
-    public function testCreateByMethodReturnsProxy()
+    public function testCreateByMethodReturnsProxy(): void
     {
         $service = new FakeServiceWithFeature();
 
-        $this->featureFlagProvider
-            ->method('areAllFeaturesActive')
-            ->willReturn(true);
+        $this->accessChecker
+            ->method('check');
 
         $this->proxyInterceptor
+            ->expects($this->once())
             ->method('createProxy')
             ->willReturn(new \stdClass());
 
-        $proxy = $this->factory->createByMethod($service);
+        $result = $this->factory->createByMethod($service);
 
-        $this->assertInstanceOf(\stdClass::class, $proxy);
-    }
-
-    public function testValidateFeatureWithActiveFeature()
-    {
-        $config = new IsFeatureActive(
-            features: ['test_feature'],
-            context: [],
-            exception: \RuntimeException::class
-        );
-
-        $this->featureFlagProvider
-            ->method('areAllFeaturesActive')
-            ->willReturn(true);
-
-        $this->factory->validateFeature($config);
-
-        $this->expectNotToPerformAssertions();
-    }
-
-    public function testValidateFeatureWithInactiveFeatureThrows()
-    {
-        $this->expectException(\RuntimeException::class);
-
-        $config = new IsFeatureActive(
-            features: ['test_feature'],
-            context: [],
-            exception: \RuntimeException::class
-        );
-
-        $this->featureFlagProvider
-            ->method('areAllFeaturesActive')
-            ->willReturn(false);
-
-        $this->factory->validateFeature($config);
+        $this->assertInstanceOf(\stdClass::class, $result); // Devrait renvoyer un proxy
     }
 }

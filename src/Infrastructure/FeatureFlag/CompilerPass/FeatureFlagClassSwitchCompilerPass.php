@@ -2,6 +2,7 @@
 
 namespace Tax16\FeatureFlagBundle\Infrastructure\FeatureFlag\CompilerPass;
 
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
@@ -28,6 +29,10 @@ class FeatureFlagClassSwitchCompilerPass extends FeatureFlagContextUpdater imple
             $class = $definition->getClass();
 
             if (!$class || !class_exists($class)) {
+                continue;
+            }
+
+            if (is_subclass_of($class, AbstractController::class)) {
                 continue;
             }
 

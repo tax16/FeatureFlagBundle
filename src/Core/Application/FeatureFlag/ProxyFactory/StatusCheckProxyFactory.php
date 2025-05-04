@@ -3,9 +3,7 @@
 namespace Tax16\FeatureFlagBundle\Core\Application\FeatureFlag\ProxyFactory;
 
 use Tax16\FeatureFlagBundle\Core\Application\FeatureFlag\Provider\FeatureFlagAttributeProvider;
-use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Attribute\IsFeatureActive;
-use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Attribute\IsFeatureInactive;
-use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Provider\FeatureFlagProviderInterface;
+use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Checker\FeatureFlagStateAccessCheckerInterface;
 use Tax16\FeatureFlagBundle\Core\Domain\Port\ApplicationLoggerInterface;
 use Tax16\FeatureFlagBundle\Core\Domain\Port\ProxyInterceptorInterface;
 
@@ -13,8 +11,8 @@ readonly class StatusCheckProxyFactory
 {
     public function __construct(
         private ApplicationLoggerInterface $logger,
-        private FeatureFlagProviderInterface $featureFlagProvider,
         private ProxyInterceptorInterface $proxyInterceptor,
+        private FeatureFlagStateAccessCheckerInterface $featureFlagStateChecker,
     ) {
     }
 
@@ -28,8 +26,8 @@ readonly class StatusCheckProxyFactory
         }
 
         try {
-            $this->validateFeature($config);
-        } catch (\Exception $exception) {
+            $this->featureFlagStateChecker->check($config);
+        } catch (\Throwable $exception) {
             $this->logger->info('Feature not enable for this class: '.$service::class);
 
             $interceptors = $this->buildClassInterceptors($service, $exception);
@@ -50,7 +48,7 @@ readonly class StatusCheckProxyFactory
     /**
      * @return array<string, \Closure>
      */
-    private function buildClassInterceptors(object $service, \Exception $exception): array
+    private function buildClassInterceptors(object $service, \Throwable $exception): array
     {
         $this->logger->info('Disable all call on the class: '.$service::class);
 
@@ -101,7 +99,7 @@ readonly class StatusCheckProxyFactory
                 array $params,
                 bool &$returnEarly,
             ) use ($config, $originalMethodName) {
-                $this->validateFeature($config);
+                $this->featureFlagStateChecker->check($config);
 
                 $returnEarly = true;
 
@@ -110,49 +108,5 @@ readonly class StatusCheckProxyFactory
         }
 
         return $interceptors;
-    }
-
-    /**
-     * @throws \Throwable
-     */
-    public function validateFeature(IsFeatureInactive|IsFeatureActive $config): void
-    {
-        $features = $config->features;
-        $exception = $config->exception;
-        $isFeatureActivate = $this->featureFlagProvider->areAllFeaturesActive($features, $config->context);
-
-        if (
-            ($config instanceof IsFeatureActive && !$isFeatureActivate)
-            || ($config instanceof IsFeatureInactive && $isFeatureActivate)
-        ) {
-            $this->logger->error('State of Feature(s) is not compliant to the class');
-            if (!class_exists($exception)) {
-                throw new \InvalidArgumentException('Invalid class exception provided');
-            }
-
-            $reflection = new \ReflectionClass($exception);
-
-            $constructor = $reflection->getConstructor();
-            if ($constructor && $constructor->getNumberOfParameters() > 0) {
-                $this->checkAndThrowException($exception, $features);
-            } else {
-                // @phpstan-ignore-next-line
-                throw new $exception();
-            }
-        }
-    }
-
-    /**
-     * @param array<string> $features
-     *
-     * @throws \Throwable
-     */
-    private function checkAndThrowException(string $exception, array $features): void
-    {
-        if (is_a($exception, \Throwable::class, true)) {
-            throw new $exception(implode(',', $features));
-        }
-
-        throw new \InvalidArgumentException("Class $exception must be a Throwable.");
     }
 }
