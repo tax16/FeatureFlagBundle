@@ -1,10 +1,13 @@
-
 # FeatureFlagBundle 📊
 
-> A Symfony feature flag bundle compatible with PHP 8.2+ and symfony 6+
+> A Symfony feature flag bundle compatible with **PHP 8.2+** and **Symfony 6+**
 
-> The Feature Flag Bundle is a powerful tool designed to help you manage feature toggles across your application. It provides a flexible and extensible way to control feature access and behavior in different environments or user contexts, without needing to modify or redeploy your codebase. You can easily enable or disable features in your application using various data sources, caching mechanisms, and custom providers, making it a versatile solution for modern application architectures.
+The **FeatureFlagBundle** is a powerful tool designed to help you manage feature toggles across your application.  
+It provides a flexible, extensible, and non-intrusive way to control feature behavior based on environment, context, or user role—without modifying or redeploying your codebase.
 
+Enable or disable features using various data sources, caching layers, or custom providers—ideal for modern, modular applications.
+
+---
 ## 🚀 Installation
 **Add the bundle via Composer**  
 Run the following command in your terminal:
@@ -15,146 +18,296 @@ Run the following command in your terminal:
 
 ## ⚙️ Features
 
-- **Data Sources**: Configure flags with YAML, JSON, or Doctrine.
+- 🗂️ **Multiple Storage Backends**  
+  Supports YAML, JSON, Doctrine, or any custom data provider for maximum flexibility.
 
-- **Caching**: Optionally enable caching for improved performance.
+- ⚡ **Efficient Caching**  
+  Optional PSR-compliant cache layer in addition to internal static caching to boost performance.
 
-- **Custom Provider**: Integrate your own flag provider.
+- 🔌 **Custom Provider Integration**  
+  Plug in your own feature flag provider by implementing `FeatureFlagProviderInterface`.
 
-- **Context-Based**: Use flags in custom contexts (e.g., users, roles, environments).
+- 🧠 **Contextual Flag Evaluation**  
+  Evaluate flags dynamically based on user roles, IPs, environments, or any custom logic.
 
-- **Switch Methods**: Use flags via method, class, or conditional logic.
+- 🧩 **Attribute-Based Switching**  
+  Use PHP attributes to toggle behavior at the method or class level with minimal intrusion.
 
-Effortlessly control feature access across environments without code changes.
+- 🔀 **Controller Route Switching**  
+  Conditionally activate routes using attributes like `#[FeaturesFlagSwitchRoute]`.
+
+- 🚫 **Class and Method Blocking**  
+  Prevent entire classes or methods from executing unless certain flags are active.
+
+- 🔧 **Zero-Code Changes**  
+  Toggle features across environments without modifying or redeploying your code.
+
 ## ⚙️ How It Works — FeatureFlag via Dynamic Proxy
 
-This bundle uses [`ocramius/proxy-manager`](https://github.com/Ocramius/ProxyManager) to dynamically intercept method calls and apply **automatic check feature flag logic** based on PHP attributes.
+This bundle leverages [`ocramius/proxy-manager`](https://github.com/Ocramius/ProxyManager) to create **dynamic proxies** around your services, enabling automatic feature flag evaluation using PHP attributes.
+
+It provides a seamless and non-intrusive way to control service behavior without modifying the original class logic.
+
+---
 
 ### 🧠 Behind the Scenes
 
-A dedicated class, `SwitchClassProxyFactory|SwitchMethodProxyFactory`, creates a **dynamic proxy** around any service. This proxy:
+Internally, classes like `SwitchClassProxyFactory` and `SwitchMethodProxyFactory` generate proxy wrappers for your services during the **Symfony compilation process**, ensuring optimal performance.
 
-- Intercepts **public methods annotated** with the attributes:
-  - `#[FeatureFlagSwitchClass]`
-  - `#[FeatureFlagSwitchMethod]`
-  - `#[FeaturesFlagSwitchClass]`
-  - `#[FeaturesFlagSwitchMethod]`
-- Duplicate and custom class or function called
-- Verify if parameter is compatible or not
-- The `injected` service always keeps the `same instance type` — only the internal logic changes, not the class itself.
+These proxies:
+- Intercept `public` methods annotated with:
+    - `#[FeatureFlagSwitchClass]`
+    - `#[FeatureFlagSwitchMethod]`
+    - `#[FeaturesFlagSwitchClass]`
+    - `#[FeaturesFlagSwitchMethod]`
 
-This behavior is completely transparent to your application code.
+- Transparently delegate method calls based on feature flag state
+- Use the original service instance, preserving the expected class type and behavior
+- Support single or multiple flag evaluation
+- Optionally apply context-aware logic (e.g. by IP, user, environment, etc.)
 
-### 🔁 Example: Using the `FeatureFlag` Attribute
+Everything is processed **at compile time** to avoid any runtime overhead.
 
-- **FeatureFlagSwitchMethod**:
+## ⚙️ Configure
+
+To configure the bundle, add the following to your Symfony configuration (e.g. `config/packages/feature_flags.yaml`):
+
+```yaml
+feature_flags:
+  storage:
+    type: doctrine         # Supported: 'doctrine', 'yaml', 'json'
+    # path: '%kernel.project_dir%/config/feature_flags.yaml' 
+    # Required only for 'yaml' or 'json' storage types
+
+  cache: true              # Enables PSR cache in addition to built-in static caching
+  ttl: 60                  # Time-to-live (in seconds) for the PSR cache
+
+  # controller_check: true
+  # Enable if you want to use feature flags on controllers
+  # (e.g. with #[IsFeatureActive], #[IsFeatureInactive], #[FeaturesFlagSwitchRoute])
+
+  # provider: App\FeatureFlag\MyCustomProvider
+  # Use a custom provider by implementing FeatureFlagProviderInterface
+```
+
+ℹ️ **If you're using Doctrine, ensure the following:**
+
+- Install the necessary Doctrine package.
+- Configure the entity mappings in `config/packages/doctrine.yaml`.
+- Copy the mapping code into your Doctrine mapping services.
+- Create the required migration for your feature flag entities.
+
+Example of Doctrine mapping configuration:
+
+```yaml
+mappings:
+  FeatureFlagBundle:
+    type: xml
+    dir: '%kernel.project_dir%/vendor/tax16/feature-flag/src/Infrastructure/FeatureFlag/Resources/config/doctrine'
+    prefix: 'Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Entity'
+    is_bundle: false
+    alias: FeatureFlagBundle
+```
+
+ℹ️ **If you want to use a custom provider** (e.g., integrating with Gitlab, LaunchDarkly, or your own custom storage):
+
+- Edit the `feature_flags` configuration file.
+- Set the `provider` option to point to your custom provider class.
+- Ensure your custom provider class implements the `FeatureFlagProviderInterface`.
+
+Example:
+
+```yaml
+feature_flags:
+  provider: App\FeatureFlag\CustomGitlabProvider
+```
+
+
+### 🔁 Example: Using the `FeatureFlag` Bundle
+
+#### Basic Example with a Provider:
+
 ```php
-use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Attribute\FeatureFlagSwitchMethod;
+#[Route('/test', name: 'app_test')]
+public function index(FeatureFlagProviderInterface $featureFlagProvider): Response
+{
+    // Single feature check
+    $isFeatureActive = $featureFlagProvider->isFeatureActive('my_feature', [ContextService::class]);
 
+    // Multiple feature check
+    $areAllFeaturesActive = $featureFlagProvider->areAllFeaturesActive(['my_feature', 'my_second_feature'], [ContextService::class]);
+
+    // By default, the context is empty, but you can customize the feature check with specific contexts, 
+    // such as by IP, user role, etc.
+}
+```
+#### Available Attributes for Feature Flag Management:
+
+There are 7 attributes available to manage feature flags:
+
+- `#[FeatureFlagSwitchClass]`: Switches the entire class behavior based on a feature flag.
+- `#[FeatureFlagSwitchMethod]`: Switches a specific method in a class based on a feature flag.
+- `#[FeaturesFlagSwitchClass]`: Similar to `#[FeatureFlagSwitchClass]`, but supports checking multiple feature flags.
+- `#[FeaturesFlagSwitchMethod]`: Similar to `#[FeatureFlagSwitchMethod]`, but supports checking multiple feature flags.
+- `#[FeaturesFlagSwitchRoute]`: Allows switching routes based on the activation of feature flags.
+- `#[IsFeatureActive]`: Checks if a feature is active and allows custom logic based on this.
+- `#[IsFeatureInactive]`: Checks if a feature is inactive and prevents certain actions based on this.
+
+These attributes provide powerful, attribute-based feature flag management across classes, methods, routes, and more.
+
+#### Example of Usage:
+
+- **FeatureFlagSwitchMethod**:  
+  The `#[FeatureFlagSwitchMethod]` attribute allows you to switch between methods based on the activation of a feature flag.
+
+```php
 class FlagService
 {
+    // This method will be switched to "helloWorldSwitch" if the feature flag "new_feature" is activated.
     #[FeatureFlagSwitchMethod(feature: 'new_feature', method: 'helloWorldSwitch')]
     public function helloWorld(): string
     {
-        // this will call the function helloWorldSwitch if "new_feature" is activated
+        // Original behavior when "new_feature" is not active
+        return 'Hello World!';
     }
     
-     public function helloWorldSwitch(): string
+    // This method will be executed when "new_feature" is active
+    public function helloWorldSwitch(): string
     {
-        // ....
+        // New behavior when the feature flag is activated
+        return 'Hello New World!';
     }
 }
 ```
 
-- **FeatureFlagSwitchClass**:
-```php
-use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Attribute\FeaturesFlagSwitchClass;
+- **FeaturesFlagSwitchClass**:  
+  The `#[FeaturesFlagSwitchClass]` attribute allows you to replace the behavior of an entire class based on one or more feature flags. If the feature flag is activated, it delegates the method calls to another class.
 
+```php
 #[FeaturesFlagSwitchClass(features: ['new_feature'], switchedClass: FlagService::class)]
 class FlagSwitchedService
 {
     public function helloWorld(): string
     {
-        // this will call the function "helloWorld" of class FlagService::class instead
-        // of FlagSwitchedService if features is activated
+        // If "new_feature" is activated, the "helloWorld" method of FlagService will be called instead
+        // of the method in FlagSwitchedService.
     }
 }
 ```
 
-- **FeatureFlagSwitchClass** with context:
-```php
-use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Attribute\FeaturesFlagSwitchClass;
+- **FeaturesFlagSwitchClass with Context**:  
+  The `#[FeaturesFlagSwitchClass]` attribute can also be used with a context to further control when the feature flag should switch the class behavior. The context allows you to specify conditions (like IP address, user role, etc.) that must be met for the class switch to occur.
 
-#[FeaturesFlagSwitchClass(feature: 'new_feature', switchedClass: FlagService::class, context: [IpContext::class])]
+  ⚠️ **Info**: The context classes should implement the `FeatureFlagContextInterface`.
+
+```php
+#[FeaturesFlagSwitchClass(features: ['new_feature'], switchedClass: FlagService::class, context: [IpContext::class])]
 class FlagSwitchedService
 {
     public function helloWorld(): string
     {
-        // this will call the function "helloWorld" of class FlagService::class
-        // instead of FlagSwitchedService if features activate and if IpContext allowed to switch
-        // for example: only internal user is able to check the feature
+        // If "new_feature" is activated and the context condition (e.g., IP address) is met,
+        // the "helloWorld" method from FlagService will be called instead of the one in FlagSwitchedService.
+        // For example: only users with a specific internal IP can access the feature.
     }
 }
 ```
+ℹ️ Note: In this example, IpContext::class could be a context class that checks the user's IP address. The feature flag will only switch to FlagService if the new_feature flag is active and the condition in IpContext is satisfied (e.g., only internal users can access the feature).
 
-- **FeatureFlagSwitchClass** with filteredMethod:
+- **FeaturesFlagSwitchClass with Filtered Method**:  
+  The `#[FeaturesFlagSwitchClass]` attribute can be used with the `filteredMethod` option to specify that only certain methods should be switched based on the feature flag. This allows you to control which methods are affected by the flag while keeping other methods intact.
+
 ```php
-use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Attribute\FeaturesFlagSwitchClass;
-
 #[FeaturesFlagSwitchClass(feature: 'new_feature', switchedClass: FlagService::class, filteredMethod: ["helloWorld"])]
 class FlagSwitchedService
 {
+    // This method will be switched to "helloWorld" from FlagService if the "new_feature" is activated.
     public function helloWorld(): string
     {
-        // this will call the function "helloWorld" of class FlagService::class
-        // instead of FlagSwitchedService if features activate
+        return 'This will be replaced by FlagService helloWorld method when the feature is active.';
     }
     
+    // This method will remain unaffected, as it is not included in the filteredMethod list.
     public function helloWorld2(): string
     {
-        // this will be called, no switched function, we use filteredMethod
+        return 'This method remains in FlagSwitchedService, unaffected by the feature flag.';
     }
 }
 ```
 
-- **dependancy injection**:
-One of the challenges we faced was switching from an instance of FlagSwitchedService to FlagService when the feature is activated.
-No worries though — everything works seamlessly. The proxy doesn’t create a new instance of FlagService; instead, it wraps FlagSwitchedService and delegates calls to the FlagService methods when needed.
+- ✅ **Dependency Injection**:  
+One challenge that often arises when using feature flags with class switching is how to switch between instances of different classes, like switching from **FlagSwitchedService** to **FlagService**, when the feature is activated. However, with this bundle, everything works seamlessly!
+The **proxy** mechanism ensures that no new instance of **FlagService** is created. Instead, it wraps the **FlagSwitchedService** instance and delegates calls to the methods of **FlagService** when the feature is enabled. This allows for smooth transitions between service implementations without disrupting the existing dependency injection setup.
+
+Here is an example of how the dependency injection works:
+
 ```php
-// ...
 final class FakeController extends AbstractController
 {
-    public function __construct(
-    private readonly FlagSwitchedService $flagSwitched
-    ) {}
-    // ....
+    private readonly FlagSwitchedService $flagSwitched;
+
+    public function __construct(FlagSwitchedService $flagSwitched)
+    {
+        // The FlagSwitchedService is injected into the controller as usual
+        // Even if the feature flag switches the class behavior, the same instance is used.
+        $this->flagSwitched = $flagSwitched;
+    }
+
+    // Your controller methods go here...
+}
+```
+- **IsFeatureActive** | **IsFeatureInactive**:  
+  You can use these attributes on both classes and methods to conditionally execute code based on feature flags. However, if you want to apply them to a **controller** method, you need to enable the `controller_check` option in your **feature_flags** configuration.
+
+#### Example: Using `IsFeatureActive` at the class level or method
+
+```php
+#[IsFeatureActive(features: ['new_feature'], context: [ContextService::class], exception: FeatureFlagActiveException::class)]
+class FakeService
+{
+    // All methods within this class will depend on the activation of the "new_feature".
+    // If the feature is not active, it will throw the "FeatureFlagActiveException" (or any custom exception you specify).
+}
+
+// You can also use this on the method if you need to specify the only method to check
+
+#[IsFeatureActive(features: ['new_feature'],  context: [ContextService::class], exception: FeatureFlagActiveException::class)]
+public function helloWorldWithoutRetry(): string
+{
+    //....
 }
 ```
 
-## ⚙️ Configure
-```yaml
-feature_flags:
-  storage:
-    type: json  # Can be 'doctrine', 'yaml' ou 'json'
-    path: '%kernel.project_dir%/config/feature_flags.json'
-  cache: true # We have already a static cache for multiple call, but this will add psr cache
-  # provider: YourCustomClassProvider # Should implement FeatureFlagProviderInterface (default: the feature flag of the bundle)
-```
+> ⚠️ **Warning**:  
+A **final** class, **abstract** class, or **controller** cannot use the method switch or class switch attributes (`FeatureFlagSwitchMethod` or `FeatureFlagSwitchClass`). These attributes are not applicable to these types of classes due to the restrictions on their instantiation and behavior.
 
-> ℹ️ If you're using Doctrine, make sure to:
-> - Install the appropriate Doctrine package
-> - Configure the entity mappings in packages/doctrine.yaml
-> - Copy this code to your doctrine mapping services
-```yml
-    mappings:
-        FeatureFlagBundle:
-            type: xml
-            dir: '%kernel.project_dir%/vendor/tax16/feature-flag/src/Infrastructure/FeatureFlag/Resources/config/doctrine'
-            prefix: 'Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Entity'
-            is_bundle: false
-            alias: FeatureFlagBundle
+- **FeaturesFlagSwitchRoute**:
+To use the `FeaturesFlagSwitchRoute` attribute, you need to activate `controller_check` in your **feature_flags** configuration.
+
+Here's an example of how to use the `FeaturesFlagSwitchRoute` attribute to switch routes dynamically based on feature flags:
+
+```php
+#[Route('/test', name: 'app_test')]
+#[FeaturesFlagSwitchRoute(
+        features: ['new_feature'], 
+        switchedRoute: 'app_fake_2', 
+        context: []  // Optionally, specify context such as user role, IP, etc.
+    )
+]
+public function index(): Response
+{
+   // If "new_feature" is active, this route will be switched to 'app_fake_2'.
+   // Otherwise, this method will be executed.
+   return $this->render('test/index.html.twig');
+}
+
+#[Route('/fake2', name: 'app_fake_2')]
+public function index2(): Response
+{
+   // This is the fallback route (when the feature is active).
+   return $this->render('fake2/index.html.twig');
+}
 ```
-> - Create your migration
 
 ## 🤝 Contributing
 
