@@ -2,7 +2,7 @@
         "type": "symfony-bundle",
         "name": "tax16/feature-flag",
         "description": "Feature flag bundle",
-        "version": "1.0.0",
+        "version": "1.1.1",
         "suggest": {
                 "doctrine/orm": "Required if using Doctrine for data storage",
                 "doctrine/dbal": "Needed for low-level database abstraction",

@@ -60,6 +60,7 @@ These proxies:
     - `#[FeatureFlagSwitchMethod]`
     - `#[FeaturesFlagSwitchClass]`
     - `#[FeaturesFlagSwitchMethod]`
+    - ....
 
 - Transparently delegate method calls based on feature flag state
 - Use the original service instance, preserving the expected class type and behavior
@@ -143,7 +144,7 @@ public function index(FeatureFlagProviderInterface $featureFlagProvider): Respon
 ```
 #### Available Attributes for Feature Flag Management:
 
-There are 7 attributes available to manage feature flags:
+⚡ There are 7 attributes available to manage feature flags:
 
 - `#[FeatureFlagSwitchClass]`: Switches the entire class behavior based on a feature flag.
 - `#[FeatureFlagSwitchMethod]`: Switches a specific method in a class based on a feature flag.
@@ -155,9 +156,11 @@ There are 7 attributes available to manage feature flags:
 
 These attributes provide powerful, attribute-based feature flag management across classes, methods, routes, and more.
 
+<br>
+
 #### Example of Usage:
 
-- **FeatureFlagSwitchMethod**:  
+- ✅ **FeatureFlagSwitchMethod**:  
   The `#[FeatureFlagSwitchMethod]` attribute allows you to switch between methods based on the activation of a feature flag.
 
 ```php
@@ -179,8 +182,9 @@ class FlagService
     }
 }
 ```
+<br>
 
-- **FeaturesFlagSwitchClass**:  
+- ✅ **FeaturesFlagSwitchClass**:  
   The `#[FeaturesFlagSwitchClass]` attribute allows you to replace the behavior of an entire class based on one or more feature flags. If the feature flag is activated, it delegates the method calls to another class.
 
 ```php
@@ -194,8 +198,9 @@ class FlagSwitchedService
     }
 }
 ```
+<br>
 
-- **FeaturesFlagSwitchClass with Context**:  
+- ✅ **FeaturesFlagSwitchClass with Context**:  
   The `#[FeaturesFlagSwitchClass]` attribute can also be used with a context to further control when the feature flag should switch the class behavior. The context allows you to specify conditions (like IP address, user role, etc.) that must be met for the class switch to occur.
 
   ⚠️ **Info**: The context classes should implement the `FeatureFlagContextInterface`.
@@ -214,7 +219,9 @@ class FlagSwitchedService
 ```
 ℹ️ Note: In this example, IpContext::class could be a context class that checks the user's IP address. The feature flag will only switch to FlagService if the new_feature flag is active and the condition in IpContext is satisfied (e.g., only internal users can access the feature).
 
-- **FeaturesFlagSwitchClass with Filtered Method**:  
+<br>
+
+- ✅ **FeaturesFlagSwitchClass with Filtered Method**:  
   The `#[FeaturesFlagSwitchClass]` attribute can be used with the `filteredMethod` option to specify that only certain methods should be switched based on the feature flag. This allows you to control which methods are affected by the flag while keeping other methods intact.
 
 ```php
@@ -234,10 +241,8 @@ class FlagSwitchedService
     }
 }
 ```
-
-- ✅ **Dependency Injection**:  
-One challenge that often arises when using feature flags with class switching is how to switch between instances of different classes, like switching from **FlagSwitchedService** to **FlagService**, when the feature is activated. However, with this bundle, everything works seamlessly!
-The **proxy** mechanism ensures that no new instance of **FlagService** is created. Instead, it wraps the **FlagSwitchedService** instance and delegates calls to the methods of **FlagService** when the feature is enabled. This allows for smooth transitions between service implementations without disrupting the existing dependency injection setup.
+🚦 **Dependency Injection**:  
+Switching between classes like FlagSwitchedService and FlagService is handled seamlessly by the bundle. Instead of creating a new instance, it uses a proxy to wrap the original service and delegate method calls when the feature is enabled—ensuring smooth integration with dependency injection.
 
 Here is an example of how the dependency injection works:
 
@@ -256,7 +261,9 @@ final class FakeController extends AbstractController
     // Your controller methods go here...
 }
 ```
-- **IsFeatureActive** | **IsFeatureInactive**:  
+<br>
+
+- ✅ **IsFeatureActive** | **IsFeatureInactive**:  
   You can use these attributes on both classes and methods to conditionally execute code based on feature flags. However, if you want to apply them to a **controller** method, you need to enable the `controller_check` option in your **feature_flags** configuration.
 
 #### Example: Using `IsFeatureActive` at the class level or method
@@ -281,7 +288,9 @@ public function helloWorldWithoutRetry(): string
 > ⚠️ **Warning**:  
 A **final** class, **abstract** class, or **controller** cannot use the method switch or class switch attributes (`FeatureFlagSwitchMethod` or `FeatureFlagSwitchClass`). These attributes are not applicable to these types of classes due to the restrictions on their instantiation and behavior.
 
-- **FeaturesFlagSwitchRoute**:
+<br>
+
+- ✅ **FeaturesFlagSwitchRoute**:
 To use the `FeaturesFlagSwitchRoute` attribute, you need to activate `controller_check` in your **feature_flags** configuration.
 
 Here's an example of how to use the `FeaturesFlagSwitchRoute` attribute to switch routes dynamically based on feature flags:
