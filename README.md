@@ -44,7 +44,7 @@ Run the following command in your terminal:
 
 ## ⚙️ How It Works — FeatureFlag via Dynamic Proxy
 
-This bundle leverages [`ocramius/proxy-manager`](https://github.com/Ocramius/ProxyManager) to create **dynamic proxies** around your services, enabling automatic feature flag evaluation using PHP attributes.
+This bundle leverages [`friendsofphp/proxy-manager-lts`](https://github.com/Ocramius/ProxyManager) to create **dynamic proxies** around your services, enabling automatic feature flag evaluation using PHP attributes.
 
 It provides a seamless and non-intrusive way to control service behavior without modifying the original class logic.
 
@@ -144,7 +144,7 @@ public function index(FeatureFlagProviderInterface $featureFlagProvider): Respon
 ```
 #### Available Attributes for Feature Flag Management:
 
-⚡ There are 7 attributes available to manage feature flags:
+⚡ There are 7 attributes available to manage feature:
 
 - `#[FeatureFlagSwitchClass]`: Switches the entire class behavior based on a feature flag.
 - `#[FeatureFlagSwitchMethod]`: Switches a specific method in a class based on a feature flag.
@@ -184,22 +184,6 @@ class FlagService
 ```
 <br>
 
-- ✅ **FeaturesFlagSwitchClass**:  
-  The `#[FeaturesFlagSwitchClass]` attribute allows you to replace the behavior of an entire class based on one or more feature flags. If the feature flag is activated, it delegates the method calls to another class.
-
-```php
-#[FeaturesFlagSwitchClass(features: ['new_feature'], switchedClass: FlagService::class)]
-class FlagSwitchedService
-{
-    public function helloWorld(): string
-    {
-        // If "new_feature" is activated, the "helloWorld" method of FlagService will be called instead
-        // of the method in FlagSwitchedService.
-    }
-}
-```
-<br>
-
 - ✅ **FeaturesFlagSwitchClass with Context**:  
   The `#[FeaturesFlagSwitchClass]` attribute can also be used with a context to further control when the feature flag should switch the class behavior. The context allows you to specify conditions (like IP address, user role, etc.) that must be met for the class switch to occur.
 
@@ -225,7 +209,7 @@ class FlagSwitchedService
   The `#[FeaturesFlagSwitchClass]` attribute can be used with the `filteredMethod` option to specify that only certain methods should be switched based on the feature flag. This allows you to control which methods are affected by the flag while keeping other methods intact.
 
 ```php
-#[FeaturesFlagSwitchClass(feature: 'new_feature', switchedClass: FlagService::class, filteredMethod: ["helloWorld"])]
+#[FeatureFlagSwitchClass(feature: 'new_feature', switchedClass: FlagService::class, filteredMethod: ["helloWorld"])]
 class FlagSwitchedService
 {
     // This method will be switched to "helloWorld" from FlagService if the "new_feature" is activated.
@@ -240,8 +224,11 @@ class FlagSwitchedService
         return 'This method remains in FlagSwitchedService, unaffected by the feature flag.';
     }
 }
+
 ```
-🚦 **Dependency Injection**:  
+---
+
+ℹ️ **Dependency Injection**:  
 Switching between classes like FlagSwitchedService and FlagService is handled seamlessly by the bundle. Instead of creating a new instance, it uses a proxy to wrap the original service and delegate method calls when the feature is enabled—ensuring smooth integration with dependency injection.
 
 Here is an example of how the dependency injection works:
@@ -249,9 +236,7 @@ Here is an example of how the dependency injection works:
 ```php
 final class FakeController extends AbstractController
 {
-    private readonly FlagSwitchedService $flagSwitched;
-
-    public function __construct(FlagSwitchedService $flagSwitched)
+    public function __construct(private readonly FlagSwitchedService $flagSwitched)
     {
         // The FlagSwitchedService is injected into the controller as usual
         // Even if the feature flag switches the class behavior, the same instance is used.
@@ -261,6 +246,7 @@ final class FakeController extends AbstractController
     // Your controller methods go here...
 }
 ```
+---
 <br>
 
 - ✅ **IsFeatureActive** | **IsFeatureInactive**:  
@@ -323,6 +309,9 @@ public function index2(): Response
 > The application is designed in hexagonal architecture:
 
 ![Network design](doc/img/hexagonal.png)
+### Advantage of Hexagonal Architecture
+
+Hexagonal architecture (also known as Ports and Adapters) clearly separates business logic from external concerns such as user interfaces, databases, and external services. This improves testability, enhances maintainability, and makes the codebase more modular. It also allows peripheral components to evolve or be replaced without impacting the core domain logic.
 
 > To contribute to the SystemCheckBundle, follow these steps:
 
