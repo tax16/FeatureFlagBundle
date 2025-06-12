@@ -8,3 +8,19 @@ actor_suffix: Tester
 extensions:
   enabled:
     - Codeception\Extension\RunFailed
+coverage:
+  enabled: true
+  include:
+    - src/*
+  exclude:
+    - tests/*
+    - src/Core/Domain/Port/*
+    - src/Core/Domain/FeatureFlag/Enum/*
+    - src/Core/Domain/FeatureFlag/Entity/*
+    - src/Core/Domain/FeatureFlag/Context/*
+    - src/Core/Domain/FeatureFlag/Attribute/*
+    - src/Core/Domain/FeatureFlag/Exception/*
+  report:
+    html: coverage
+    xml: coverage/coverage.xml
+    text: true

@@ -2,11 +2,10 @@
 
 namespace App\Tests\Unit\Core\Application\Proxy;
 
-use App\Tests\Unit\Core\Application\Proxy\FakeClass\FakeClassServiceWithFeature;
-use App\Tests\Unit\Core\Application\Proxy\FakeClass\FakeIncompatibleSwitchedService;
 use App\Tests\Unit\Core\Application\Proxy\FakeClass\FakeServiceWithFeature;
 use App\Tests\Unit\Core\Application\Proxy\FakeClass\FakeServiceWithoutFeature;
 use PHPUnit\Framework\TestCase;
+use Tax16\FeatureFlagBundle\Core\Application\FeatureFlag\Checker\ClassChecker;
 use Tax16\FeatureFlagBundle\Core\Application\FeatureFlag\ProxyFactory\SwitchClassProxyFactory;
 use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Attribute\FeatureFlagSwitchClass;
 use Tax16\FeatureFlagBundle\Core\Domain\FeatureFlag\Attribute\FeaturesFlagSwitchClass;
@@ -101,5 +100,40 @@ class SwitchClassProxyFactoryTest extends TestCase
         $result = $this->factory->createProxy($service, $switchedService);
 
         $this->assertSame($switchedService, $result);
+    }
+
+    public function testExtractFeatureNamesWithSingleFeature(): void
+    {
+        $reflection = new \ReflectionClass($this->factory);
+        $method = $reflection->getMethod('extractFeatureNames');
+        $method->setAccessible(true);
+
+        $single = new FeatureFlagSwitchClass('my_feature', FakeSwitchedService::class);
+        $result = $method->invoke($this->factory, $single);
+
+        $this->assertSame(['my_feature'], $result);
+    }
+
+    public function testExtractFeatureNamesWithMultipleFeatures(): void
+    {
+        $reflection = new \ReflectionClass($this->factory);
+        $method = $reflection->getMethod('extractFeatureNames');
+        $method->setAccessible(true);
+
+        $multi = new FeaturesFlagSwitchClass(['feature_1', 'feature_2'], FakeSwitchedService::class);
+        $result = $method->invoke($this->factory, $multi);
+
+        $this->assertSame(['feature_1', 'feature_2'], $result);
+    }
+
+    public function testExtractFeatureNamesWithInvalidInputThrowsException(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        $reflection = new \ReflectionClass($this->factory);
+        $method = $reflection->getMethod('extractFeatureNames');
+        $method->setAccessible(true);
+
+        $method->invoke($this->factory, new \stdClass());
     }
 }

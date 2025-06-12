@@ -39,7 +39,7 @@ readonly class FeatureFlagControllerRouteHandler implements ControllerRouteHandl
         return null;
     }
 
-    public function handleSwitchRoute(FeaturesFlagSwitchRoute $featureFlagConfig, object $controller): ?string
+    private function handleSwitchRoute(FeaturesFlagSwitchRoute $featureFlagConfig, object $controller): ?string
     {
         $isActive = $this->featureFlagProvider->areAllFeaturesActive($featureFlagConfig->features, $featureFlagConfig->context);
         $features = implode(',', $featureFlagConfig->features);
