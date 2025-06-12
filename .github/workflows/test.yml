@@ -38,3 +38,14 @@ jobs:
 
       - name: Run Codeception tests with coverage
         run: vendor/bin/codecept run --coverage --coverage-xml
+
+      - name: Verify coverage is above 80%
+        run: |
+          php -r " \
+          \$xml = simplexml_load_file('tests/_output/coverage.xml'); \
+          \$metrics = \$xml->project['metrics']; \
+          \$covered = (int) \$metrics['coveredstatements']; \
+          \$total = (int) \$metrics['statements']; \
+          \$coverage = (\$total > 0) ? (\$covered / \$total) * 100 : 0; \
+          echo 'Coverage: ' . round(\$coverage, 2) . \"%\n\"; \
+          if (\$coverage < 80) { fwrite(STDERR, 'ERROR: Code coverage below 80%\n'); exit(1); }"
